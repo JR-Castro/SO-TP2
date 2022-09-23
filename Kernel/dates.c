@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <dates.h>
 
 static uint8_t getPreviousDay(uint8_t day);
@@ -6,7 +8,7 @@ static uint8_t getPreviousDay(uint8_t day);
 uint8_t localHours(void)
 {
     uint8_t hour = getHours();
-    if (hour >= 0 && hour <= 3)
+    if (hour <= 3)
     {
         return hour - 3 + 21;
     }

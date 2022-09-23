@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <naiveConsole.h>
 
 #define WIDTH 80
@@ -6,7 +8,7 @@
 #define WINDOWS 2
 
 static uint32_t uintToBase(uint64_t value, char *buffer, uint32_t base);
-static char buffer[64] = {'0'};
+static char buffer[64] = {0};
 static uint8_t *const video = (uint8_t *)VIDEOSTART;
 static uint8_t *currentVideo = (uint8_t *)VIDEOSTART;
 static const uint32_t width = WIDTH;
@@ -268,7 +270,7 @@ void scrollUp(){
 		while (i < height*width)
 		{
 			video[i*2]=' ';
-			video[i*2]=defaultFormat;
+			video[i*2+1]=defaultFormat;
 			if (i && (i+1)%widthW==0)
 				i+=width/2;
 			i++;
