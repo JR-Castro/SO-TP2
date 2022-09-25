@@ -1,6 +1,11 @@
 
 all:  bootloader kernel userland image
 
+gdb: bootloader
+	cd Kernel; make gdb
+	cd Userland; make gdb
+	cd Image; make all
+
 bootloader:
 	cd Bootloader; make all
 
@@ -19,4 +24,4 @@ clean:
 	cd Kernel; make clean
 	cd Userland; make clean
 
-.PHONY: bootloader image collections kernel userland all clean
+.PHONY: bootloader image collections kernel gdb userland all clean
