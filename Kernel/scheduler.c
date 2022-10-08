@@ -1,172 +1,323 @@
 // This is a personal academic project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <scheduler.h>
+#include <memManager.h>
+#include <string.h>
 
-#define DEFAULT_CURRENT -1
-#define TASK_ARR_SIZE 2
-#define DEFAULT_FLAGS 0x202 // Interrupts and Intel reserved bits: 1000000010b = 0x202
+#define MAXFD 5
+#define QUANTUM 1
+#define STACK_SIZE 4096 // 4Kb
+#define DEFAULT_PRIORITY 1
+#define MIN_PRIORITY 1
+#define MAX_PRIORITY 10
+#define FIRST_PID 1
+#define DEFAULT_FLAGS 0x202
+#define CODE_SEGMENT 0x8
+#define STACK_SEGMENT 0
 
-#pragma pack(push)  /* Push de la alineación actual */
-#pragma pack (1)    /* Alinear las siguientes estructuras a 1 byte */
+struct registerStack {
+    uint64_t r15;
+    uint64_t r14;
+    uint64_t r13;
+    uint64_t r12;
+    uint64_t r11;
+    uint64_t r10;
+    uint64_t r9;
+    uint64_t r8;
+    uint64_t rsi;
+    uint64_t rdi;
+    uint64_t rbp;
+    uint64_t rdx;
+    uint64_t rcx;
+    uint64_t rbx;
+    uint64_t rax;
+    uint64_t rip;
+    uint64_t cs;
+    uint64_t rflags;
+    uint64_t rsp;
+    uint64_t ss;
+};
 
-/* Contexto de cada task */
-typedef struct {
-    uint64_t registers[REG_AMOUNT]; // Registers: R15, ..., RBX, RAX
-    uint64_t rsp, rip, rflags;
-    uint64_t buRIP;
-    uint8_t window, active, finished;
-} TASK_CONTEXT;
+typedef enum {
+    READY,
+    BLOCKED,
+    KILLED,
+} State;
 
-#pragma pack(pop)   /* Reestablece la alineación actual */
+typedef struct PCB {
+    uint64_t rsp;
+    State state;
+    uint8_t ppid;
+    uint8_t pid;
+    uint64_t fd[MAXFD];
+    uint64_t priority;
+    uint64_t remainingCPUTime;
+    void *stackMem;
+    char **argv;
+    int argc;
+} pcb_t;
 
+typedef struct processNode {
+    pcb_t info;
+    struct processNode *next;
+} node_t;
 
-static TASK_CONTEXT origin;     //Backup del caller.
-static TASK_CONTEXT tasks[TASK_ARR_SIZE];    //Task array
+typedef struct processList {
+    node_t *first;
+    node_t *last;
+    uint64_t size;
+    uint64_t nReady;
+} pList_t;
 
-//Amount of tasks currently running
-//If amount == -1, then tasks where terminated and original context must be reloaded
-static int amount = 0;
-static int current = DEFAULT_CURRENT;         //Currently running task
+static uint64_t pidCount = FIRST_PID;
+static uint8_t size;
+static pList_t processList;
+static node_t *currentProcess;
+static node_t *noProcess;
 
-static void * const userlandAddress = (void*)0x700000;
-static void * const stepping = (void*)0x100000;
+static uint64_t getNewPid();
 
-static void activateTask(unsigned int task);
-static void pauseTask(unsigned int task);
-static void saveContext(TASK_CONTEXT * context, uint64_t * registers);
-static void loadContext(uint64_t * registers, TASK_CONTEXT * context);
+static void copyArguments(char **dest, int argc, char **argv);
 
-void loadTasks(int (*program1)(), int (*program2)(), uint64_t * registers){
-    ncWindows(2);
-    tasks[0].rip = (uint64_t) program1;
-    tasks[1].rip = (uint64_t) program2;
-    for (int i = 0; i < TASK_ARR_SIZE; i++)
-    {
-        tasks[i].rsp = (uint64_t) userlandAddress + (uint64_t) stepping * i;
-        //Return address
-        *((uint64_t*)tasks[i].rsp) = (uint64_t) _defaultExit;
-        tasks[i].window = i;
-        tasks[i].active = 1;
-        tasks[i].finished = 0;
-        tasks[i].rflags = DEFAULT_FLAGS;
+static void addProcess(node_t *node);
+
+static node_t *removeProcess();
+
+static void initializeProcessStack(node_t *pNode, void (*f)(int, char **));
+
+static void loaderFunction(int argc, char **argv, void (*f)(int, char **));
+
+static node_t *searchNode(uint64_t pid);
+
+static void exitProcess();
+
+static void freeProcess(node_t *node);
+
+static void noProcessFunction(int argc, char **argv);
+
+static void setRemainingTime(node_t *node);
+
+void initializeScheduler() {
+    processList.first = NULL;
+    processList.last = NULL;
+    processList.nReady = 0;
+    processList.size = 0;
+    currentProcess = NULL;
+    char name[] = "noProcess";
+    createProcess(noProcessFunction, 1, (char **) &name);
+    noProcess = removeProcess();
+}
+
+uint64_t createProcess(void (*f)(int, char **), int argc, char **argv) {
+    uint64_t pid = getNewPid();
+
+    // Get memory for new process stack
+    node_t *processNode = memAlloc(sizeof(node_t));
+    if (processNode == NULL)
+        return 0;
+    void *processStack = memAlloc(STACK_SIZE);
+    if (processStack == NULL) {
+        memFree(processNode);
+        return 0;
     }
-    amount = 2;
+    processNode->info.pid = pid;
+    processNode->info.ppid = (currentProcess == NULL ? 0 : currentProcess->info.pid);
+    processNode->info.stackMem = processStack;
+    processNode->info.rsp = (uint64_t) processStack + STACK_SIZE;
+    processNode->info.argv = memAlloc(sizeof(char *) * argc);
+    processNode->info.state = READY;
+    processNode->info.priority = DEFAULT_PRIORITY;
+    setRemainingTime(processNode);
+    copyArguments(processNode->info.argv, argc, argv);
+    initializeProcessStack(processNode, f);
+    addProcess(processNode);
 
-    //Save origin context
-    saveContext(&origin, registers);
-    nextTask(registers);
+    return pid;
 }
 
-void changeStatus(unsigned int taskNum){
-    if (amount <= 0)    // Do nothing if no tasks are running or they were terminated.
-        return;
-    int i = taskNum % TASK_ARR_SIZE;
-    if (tasks[i].active == 1)
-        pauseTask(i);
-    else
-        activateTask(i);
+static void initializeProcessStack(node_t *pNode, void (*f)(int, char **)) {
+    struct registerStack *stack = (struct registerStack *) pNode->info.rsp;
+    stack->rsi = (uint64_t) pNode->info.argv;
+    stack->rdi = (uint64_t) pNode->info.argc;
+    stack->rdx = (uint64_t) f;
+    stack->rip = (uint64_t) loaderFunction;
+    stack->rsp = (uint64_t) pNode->info.rsp;
+    stack->rflags = DEFAULT_FLAGS;
+    stack->cs = CODE_SEGMENT;
+    stack->ss = STACK_SEGMENT;
 }
 
-static void pauseTask(unsigned int task){
-    if (!(tasks[task].rip >= (uint64_t) haltcpu && tasks[task].rip <= (uint64_t) _endhaltcpu))
-        tasks[task].buRIP = tasks[task].rip;
-    tasks[task].rip = (uint64_t)haltcpu;
-    tasks[task].active = 0;
-}
-
-static void activateTask(unsigned int task){
-    tasks[task].rip = tasks[task].buRIP;
-    tasks[task].active = 1;
-}
-
-void nextTask(uint64_t * registers){
-    if (amount == 0)
-        return;
-    if (amount == -1){
-        amount = 0;
-        ncWindows(1);
-        loadContext(registers,&origin);
-        return;
+static node_t *getReadyNode() {
+    node_t *ret = removeProcess();
+    while (ret->info.state != READY) {
+        if (ret->info.state == KILLED)
+            freeProcess(ret);
+        else
+            addProcess(ret);
+        ret = removeProcess();
     }
-    int next = (current+1) % TASK_ARR_SIZE;
+    return ret;
+}
 
-    if (tasks[next].finished == 1){
-        if (tasks[current].finished == 1){
-            ncWindows(1);
-            loadContext(registers, &origin);
+static void copyArguments(char **dest, int argc, char **argv) {
+    for (int i = 0; i < argc; ++i) {
+        size_t strsize = strlen(argv[i]);
+        dest[i] = memAlloc(strsize + 1);
+        if (argv[i] == NULL)
             return;
-        }
-        if (tasks[current].active == 0){
-            if (!(tasks[current].rip >= (uint64_t) haltcpu && tasks[current].rip <= (uint64_t) _endhaltcpu))
-                tasks[current].buRIP = registers[RIP_POS];
-            saveContext(&tasks[current], registers);
-            tasks[current].rip = (uint64_t) haltcpu;
-            loadContext(registers, &tasks[current]);
+        memcpy(dest[i], argv[i], strsize + 1);
+    }
+}
+
+static uint64_t getNewPid() {
+    return ++pidCount;
+}
+
+static void addProcess(node_t *node) {
+    if (node == NULL)
+        return;
+    if (processList.first == NULL)
+        processList.first = node;
+    else
+        processList.last->next = node;
+    processList.last = node;
+    node->next = NULL;
+    processList.size++;
+    if (node->info.state == READY)
+        processList.nReady++;
+}
+
+static node_t *removeProcess() {
+    if (processList.size == 0)
+        return NULL;
+
+    node_t *ans = processList.first;
+    if (processList.last == ans)
+        processList.last = NULL;
+
+    processList.first = processList.first->next;
+    if (ans->info.state == READY)
+        processList.nReady--;
+    processList.size--;
+    return ans;
+}
+
+static void noProcessFunction(int argc, char **argv) {
+    while (1)
+        _hlt();
+}
+
+static int changeState(uint64_t pid, State newState) {
+    node_t *aux = searchNode(pid);
+    if (aux == NULL || aux->info.state == KILLED)
+        return -1;
+
+    if (aux->info.state == newState)
+        return 1;
+
+    if (newState == READY && aux->info.state != READY)
+        processList.nReady++;
+    else if (aux->info.state == READY && newState != READY)
+        processList.nReady--;
+
+    return 0;
+}
+
+uint64_t block(uint64_t pid) {
+    if (pid <= FIRST_PID)
+        return -1;
+    changeState(pid, BLOCKED);
+}
+
+uint64_t unblock(uint64_t pid) {
+    if (pid <= FIRST_PID)
+        return -1;
+    changeState(pid, READY);
+}
+
+uint64_t kill(uint64_t pid) {
+    if (pid <= FIRST_PID)
+        return -1;
+    changeState(pid, KILLED);
+}
+
+uint64_t yield() {
+    currentProcess->info.remainingCPUTime = 0;
+    forceTimerTick();
+}
+
+static node_t *searchNode(uint64_t pid) {
+    node_t *aux = processList.first;
+    while (aux != NULL) {
+        if (aux->info.pid == pid)
+            return aux;
+        aux = aux->next;
+    }
+    return NULL;
+}
+
+static void exitProcess() {
+    kill(currentProcess->info.pid);
+}
+
+static void freeProcess(node_t *node) {
+    for (int i = 0; i <= node->info.argc; ++i) {
+        memFree(node->info.argv[i]);
+    }
+    memFree(node->info.argv);
+    memFree(node->info.stackMem);
+    memFree(node);
+}
+
+static void loaderFunction(int argc, char **argv, void (*f)(int, char **)) {
+    f(argc, argv);
+    exitProcess();
+}
+
+uint64_t getPid() {
+    return currentProcess->info.pid;
+}
+
+uint64_t nice(uint64_t pid, uint64_t newPriority) {
+    if (newPriority < MIN_PRIORITY || newPriority > MAX_PRIORITY)
+        return -1;
+    node_t *node;
+    if (currentProcess->info.pid == pid)
+        node = currentProcess;
+    else {
+        node = searchNode(pid);
+        if (node == NULL)
+            return -1;
+    }
+    node->info.priority = newPriority;
+    return 0;
+}
+
+uint64_t schedule(uint64_t rsp) {
+    if (currentProcess == NULL) {
+        if (processList.size == 0) {
+            currentProcess = noProcess;
+            setRemainingTime(currentProcess);
         } else {
-            if ((registers[RIP_POS] >= (uint64_t) haltcpu && registers[RIP_POS] <= (uint64_t) _endhaltcpu)){
-                saveContext(&tasks[current], registers);
-                tasks[current].rip = tasks[current].buRIP;
-                loadContext(registers, &tasks[current]);
-            }
+            currentProcess = removeProcess();
+            setRemainingTime(currentProcess);
+            addProcess(currentProcess);
         }
-        return;
+    } else {
+        currentProcess->info.rsp = rsp;
+        if (currentProcess->info.remainingCPUTime <= 0 && processList.nReady > 0) {
+            currentProcess = getReadyNode();
+            setRemainingTime(currentProcess);
+            addProcess(currentProcess);
+        } else if (processList.nReady <= 0){
+            currentProcess = noProcess;
+            setRemainingTime(currentProcess);
+        }
     }
-
-    if (current != DEFAULT_CURRENT && tasks[current].finished != 1)
-        saveContext(&(tasks[current]), registers);
-    current = next;
-    ncCurrentWindow(tasks[current].window);
-    loadContext(registers, &(tasks[current]));
+    currentProcess->info.remainingCPUTime--;
+    return currentProcess->info.rsp;
 }
 
-void exitTask(int retValue, uint64_t * registers){
-    if (amount == 0)
-        return;
-    tasks[current].finished = 1;
-    amount--;
-    ncNewline();
-    ncPrint("Program returned ");
-    ncPrintDec(retValue);
-    if (amount == 0){
-        current = DEFAULT_CURRENT;
-        ncWindows(1);
-        loadContext(registers, &origin);
-    } else
-        nextTask(registers);
-}
-
-static void saveContext(TASK_CONTEXT * context, uint64_t * registers){
-    for (int i = 0; i < REG_AMOUNT; i++)
-    {
-        context->registers[i] = registers[i];
-    }
-    context->rip = registers[RIP_POS];
-    context->rflags = registers[RFLAGS_POS];
-    context->rsp = registers[RSP_POS];
-}
-
-static void loadContext(uint64_t * registers, TASK_CONTEXT * context){
-    for (int i = 0; i < REG_AMOUNT; i++)
-    {
-        registers[i] = context->registers[i];
-    }
-    registers[RIP_POS] = context->rip;
-    registers[RFLAGS_POS] = context->rflags;
-    registers[RSP_POS] = context->rsp;
-}
-
-void terminateTasks(){
-    // Do nothing if no tasks are running, or they were already terminated.
-    if (amount <= 0)
-        return;
-    for (int i = 0; i < TASK_ARR_SIZE; i++)
-    {
-        tasks[i].finished = 1;
-    } 
-    current = DEFAULT_CURRENT;
-    amount = -1;
-}
-
-int getCurrentTask(){
-    return current;
+static void setRemainingTime(node_t *node){
+    node->info.remainingCPUTime = node->info.priority * QUANTUM;
 }

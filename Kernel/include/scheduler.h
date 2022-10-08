@@ -7,18 +7,24 @@
 #include <timerDriver.h>
 #include <defs.h>
 
-void _defaultExit();
+uint64_t createProcess(void (*f)(int, char**), int argc, char **argv);
 
-void loadTasks(int (*program1)(), int (*program2)(), uint64_t * registers);
+uint64_t schedule(uint64_t rsp);
 
-void nextTask(uint64_t * registers);
+uint64_t getPid();
 
-void changeStatus(unsigned int taskNum);
+void initializeScheduler();
 
-void exitTask(int retValue, uint64_t * registers);
+uint64_t block(uint64_t pid);
 
-void terminateTasks();
+uint64_t unblock(uint64_t pid);
 
-int getCurrentTask();
+uint64_t kill(uint64_t pid);
+
+uint64_t yield();
+
+uint64_t nice(uint64_t pid, uint64_t newPriority);
+
+void forceTimerTick();
 
 #endif //SCHEDULER_H

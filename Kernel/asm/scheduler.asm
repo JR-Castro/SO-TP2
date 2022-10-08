@@ -1,8 +1,7 @@
-GLOBAL _defaultExit
+GLOBAL forceTimerTick
 
 section .text
 
-_defaultExit:
-    mov rdi, rax
-    mov rax, 4
-    int 80h
+forceTimerTick:
+    int 20
+    ret
