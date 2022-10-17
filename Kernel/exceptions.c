@@ -18,7 +18,7 @@ void exceptionDispatcher(uint64_t exception, uint64_t rip, uint64_t rsp, const u
 		invalid_opcode(rip, rsp, backup);
 	}
 	// If a scheduled task generated the exception, pause it.
-	changeStatus(getCurrentTask());
+	kill(getPid());
 }
 
 

@@ -2,7 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <scheduler.h>
 #include <memManager.h>
-#include <string.h>
+#include <lib.h>
 
 #define MAXFD 5
 #define QUANTUM 1
@@ -220,28 +220,31 @@ static int changeState(uint64_t pid, State newState) {
     else if (aux->info.state == READY && newState != READY)
         processList.nReady--;
 
+    if (newState == KILLED)
+        freeProcess(aux);
+
     return 0;
 }
 
 uint64_t block(uint64_t pid) {
     if (pid <= FIRST_PID)
         return -1;
-    changeState(pid, BLOCKED);
+    return changeState(pid, BLOCKED);
 }
 
 uint64_t unblock(uint64_t pid) {
     if (pid <= FIRST_PID)
         return -1;
-    changeState(pid, READY);
+    return changeState(pid, READY);
 }
 
 uint64_t kill(uint64_t pid) {
     if (pid <= FIRST_PID)
         return -1;
-    changeState(pid, KILLED);
+    return changeState(pid, KILLED);
 }
 
-uint64_t yield() {
+void yield() {
     currentProcess->info.remainingCPUTime = 0;
     forceTimerTick();
 }

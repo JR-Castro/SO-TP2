@@ -21,7 +21,7 @@ uint64_t unblock(uint64_t pid);
 
 uint64_t kill(uint64_t pid);
 
-uint64_t yield();
+void yield();
 
 uint64_t nice(uint64_t pid, uint64_t newPriority);
 

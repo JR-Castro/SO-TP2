@@ -83,10 +83,6 @@ SECTION .text
 	mov rcx, rsp
 	call exceptionDispatcher
 
-	;Should we call haltcpu? _hlt? go to the return of the main function?
-	;Should we call or modify the RIP value in the stack?
-	call haltcpu
-
 	popState
 	iretq
 %endmacro
@@ -130,9 +126,10 @@ _irq00Handler:
     mov rdi, 0
     call irqDispatcher
 
-    mov rdi, rsp
-    call schedule
-    mov rsp, rax
+    ; TODO setup scheduler
+    ;mov rdi, rsp
+    ;call schedule
+    ;mov rsp, rax
 
     ; signal pic EOI (End of Interrupt)
     mov al, 20h

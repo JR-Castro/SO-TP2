@@ -113,23 +113,9 @@ void keyboard_handler(uint64_t * registers)
   if (pressed(scancode, key))
   {
     if (control){
-      switch (key)
-      {
-      case 0x26:  //Ctrl+L(26) = Pause left window
-        changeStatus(0);
-        break;
-      case 0x13:  //Ctrl+R(13) = Pause right window
-        changeStatus(1);
-        break;
-      case 0x12:   //Ctrl+E = Terminate both tasks
-        terminateTasks();
-        break;
-      case 0x2e:  //Ctrl+C = copy registers
-        setRegisters(registers);
-        break;
-      default:
-        break;
-      }
+        if (key == 0x2E) {  //Ctrl+C = copy registers
+            setRegisters(registers);
+        }
     } else {
       add(translate(key));
     }
