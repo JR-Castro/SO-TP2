@@ -11,32 +11,6 @@
 #define MIN_PRIORITY 1
 #define MAX_PRIORITY 10
 #define FIRST_PID 1
-#define DEFAULT_FLAGS 0x202
-#define CODE_SEGMENT 0x8
-#define STACK_SEGMENT 0
-
-struct registerStack {
-    uint64_t r15;
-    uint64_t r14;
-    uint64_t r13;
-    uint64_t r12;
-    uint64_t r11;
-    uint64_t r10;
-    uint64_t r9;
-    uint64_t r8;
-    uint64_t rsi;
-    uint64_t rdi;
-    uint64_t rbp;
-    uint64_t rdx;
-    uint64_t rcx;
-    uint64_t rbx;
-    uint64_t rax;
-    uint64_t rip;
-    uint64_t cs;
-    uint64_t rflags;
-    uint64_t rsp;
-    uint64_t ss;
-};
 
 typedef enum {
     READY,
@@ -70,7 +44,7 @@ typedef struct processList {
 } pList_t;
 
 static uint64_t pidCount = FIRST_PID;
-static uint8_t size;
+static uint8_t firstProcess = 1;
 static pList_t processList;
 static node_t *currentProcess;
 static node_t *noProcess;
@@ -83,8 +57,6 @@ static void addProcess(node_t *node);
 
 static node_t *removeProcess();
 
-static void initializeProcessStack(node_t *pNode, void (*f)(int, char **));
-
 static void loaderFunction(int argc, char **argv, void (*f)(int, char **));
 
 static node_t *searchNode(uint64_t pid);
@@ -93,7 +65,7 @@ static void exitProcess();
 
 static void freeProcess(node_t *node);
 
-static void noProcessFunction(int argc, char **argv);
+_Noreturn static void noProcessFunction(int argc, char **argv);
 
 static void setRemainingTime(node_t *node);
 
@@ -103,7 +75,7 @@ void initializeScheduler() {
     processList.nReady = 0;
     processList.size = 0;
     currentProcess = NULL;
-    char name[] = "noProcess";
+    char *name[] = {"noProcess"};
     createProcess(noProcessFunction, 1, (char **) &name);
     noProcess = removeProcess();
 }
@@ -123,28 +95,19 @@ uint64_t createProcess(void (*f)(int, char **), int argc, char **argv) {
     processNode->info.pid = pid;
     processNode->info.ppid = (currentProcess == NULL ? 0 : currentProcess->info.pid);
     processNode->info.stackMem = processStack;
-    processNode->info.rsp = (uint64_t) processStack + STACK_SIZE;
     processNode->info.argv = memAlloc(sizeof(char *) * argc);
+    processNode->info.rsp = setupStack((uint64_t) processStack + STACK_SIZE - 1, (uint64_t) loaderFunction, argc,
+                                       (uint64_t) processNode->info.argv, (uint64_t) f);
     processNode->info.state = READY;
     processNode->info.priority = DEFAULT_PRIORITY;
     setRemainingTime(processNode);
     copyArguments(processNode->info.argv, argc, argv);
-    initializeProcessStack(processNode, f);
     addProcess(processNode);
 
-    return pid;
-}
+    if (currentProcess == NULL)
+        currentProcess = processNode;
 
-static void initializeProcessStack(node_t *pNode, void (*f)(int, char **)) {
-    struct registerStack *stack = (struct registerStack *) pNode->info.rsp;
-    stack->rsi = (uint64_t) pNode->info.argv;
-    stack->rdi = (uint64_t) pNode->info.argc;
-    stack->rdx = (uint64_t) f;
-    stack->rip = (uint64_t) loaderFunction;
-    stack->rsp = (uint64_t) pNode->info.rsp;
-    stack->rflags = DEFAULT_FLAGS;
-    stack->cs = CODE_SEGMENT;
-    stack->ss = STACK_SEGMENT;
+    return pid;
 }
 
 static node_t *getReadyNode() {
@@ -202,7 +165,7 @@ static node_t *removeProcess() {
     return ans;
 }
 
-static void noProcessFunction(int argc, char **argv) {
+_Noreturn static void noProcessFunction(int argc, char **argv) {
     while (1)
         _hlt();
 }
@@ -307,12 +270,15 @@ uint64_t schedule(uint64_t rsp) {
             addProcess(currentProcess);
         }
     } else {
-        currentProcess->info.rsp = rsp;
+        if (!firstProcess)
+            currentProcess->info.rsp = rsp;
+        else
+            firstProcess = 0;
         if (currentProcess->info.remainingCPUTime <= 0 && processList.nReady > 0) {
             currentProcess = getReadyNode();
             setRemainingTime(currentProcess);
             addProcess(currentProcess);
-        } else if (processList.nReady <= 0){
+        } else if (processList.nReady <= 0) {
             currentProcess = noProcess;
             setRemainingTime(currentProcess);
         }
@@ -321,6 +287,6 @@ uint64_t schedule(uint64_t rsp) {
     return currentProcess->info.rsp;
 }
 
-static void setRemainingTime(node_t *node){
+static void setRemainingTime(node_t *node) {
     node->info.remainingCPUTime = node->info.priority * QUANTUM;
 }

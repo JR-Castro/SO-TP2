@@ -126,10 +126,9 @@ _irq00Handler:
     mov rdi, 0
     call irqDispatcher
 
-    ; TODO setup scheduler
-    ;mov rdi, rsp
-    ;call schedule
-    ;mov rsp, rax
+    mov rdi, rsp
+    call schedule
+    mov rsp, rax
 
     ; signal pic EOI (End of Interrupt)
     mov al, 20h
