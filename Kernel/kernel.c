@@ -5,6 +5,8 @@
 #include <moduleLoader.h>
 #include <naiveConsole.h>
 #include <idtLoader.h>
+#include <memManager.h>
+#include <scheduler.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -52,8 +54,14 @@ void * initializeKernelBinary()
 int main()
 {	
 	ncClear();
+    // TODO decide actual location and size of heap
+    createMemoryManager((void*)0x900000, 16384);
+    initializeScheduler();
+    char *argv[] = {"bash"};
+    createProcess((void (*)(int, char **))sampleCodeModuleAddress, 1, (char **) &argv);
 	load_idt();
-	loadUserland(sampleCodeModuleAddress, (uint64_t*) 0x900000);
+    forceTimerTick();
+//	loadUserland(sampleCodeModuleAddress, (uint64_t*) 0x900000);
 	ncPrint("[Finished]");
 	return 0;
 }

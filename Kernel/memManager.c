@@ -23,7 +23,7 @@ typedef union header Header;
 static Header *freep = NULL;
 struct memoryInfo memInfo;
 
-void *mymalloc(size_t nbytes) {
+void *memAlloc(size_t nbytes) {
     if (nbytes > memInfo.free)
         return NULL;
 
@@ -51,7 +51,7 @@ void *mymalloc(size_t nbytes) {
     }
 }
 
-void myfree(void *ap) {
+void memFree(void *ap) {
     Header *freedBlock, *p;
     freedBlock = (Header *) ap - 1;               // Points to block header
     memInfo.free += freedBlock->s.size * sizeof(Header);

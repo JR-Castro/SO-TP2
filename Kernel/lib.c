@@ -50,3 +50,10 @@ void * memcpy(void * destination, const void * source, uint64_t length)
 
 	return destination;
 }
+
+int strlen(char *s) {
+    int i = 0;
+    while (s[i] != '\0')
+        i++;
+    return i;
+}

@@ -15,9 +15,9 @@ struct memoryInfo {
     size_t totalSize;
 };
 
-void *mymalloc(size_t nbytes);
+void *memAlloc(size_t nbytes);
 
-void myfree(void *ap);
+void memFree(void *ap);
 
 void createMemoryManager(void *managedMemory, size_t size);
 

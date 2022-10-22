@@ -3,8 +3,6 @@ GLOBAL _cli
 GLOBAL _sti
 GLOBAL picMasterMask
 GLOBAL picSlaveMask
-GLOBAL haltcpu
-GLOBAL _endhaltcpu
 GLOBAL _hlt
 
 GLOBAL _irq00Handler
@@ -19,6 +17,7 @@ GLOBAL _exception6Handler
 
 EXTERN irqDispatcher
 EXTERN exceptionDispatcher
+EXTERN schedule
 
 SECTION .text
 
@@ -84,10 +83,6 @@ SECTION .text
 	mov rcx, rsp
 	call exceptionDispatcher
 
-	;Should we call haltcpu? _hlt? go to the return of the main function?
-	;Should we call or modify the RIP value in the stack?
-	call haltcpu
-
 	popState
 	iretq
 %endmacro
@@ -126,7 +121,21 @@ picSlaveMask:
 
 ;8254 Timer (Timer Tick)
 _irq00Handler:
-	irqHandlerMaster 0
+    pushState
+
+    mov rdi, 0
+    call irqDispatcher
+
+    mov rdi, rsp
+    call schedule
+    mov rsp, rax
+
+    ; signal pic EOI (End of Interrupt)
+    mov al, 20h
+    out 20h, al
+
+    popState
+    iretq
 
 ;Keyboard
 _irq01Handler:
@@ -156,10 +165,4 @@ _exception0Handler:
 ;Invalid Opcode Exception
 _exception6Handler:
 	exceptionHandler 6
-
-haltcpu:
-	sti
-	hlt
-_endhaltcpu:
-	jmp haltcpu
 
