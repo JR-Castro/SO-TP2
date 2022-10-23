@@ -20,6 +20,8 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
             return (uint64_t) getRegisters((uint64_t *)rdi);
         case 3:
             return createProcess((void (*)(int, char**))rdi, (int)rsi, (char**)rdx);
+        case 4:
+            return waitPid(rdi);
         case 5:
             sys_time((time_t*)rdi);
             break;
@@ -41,8 +43,7 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
         case 13:
             printSchedulerInfo();
             break;
-        case 14:
-            return waitPid(rdi);
+
         default:
             return -1;
     }

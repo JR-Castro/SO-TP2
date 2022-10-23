@@ -11,7 +11,7 @@ typedef ptr (*pm)();
 void help();
 int readInput();
 void unknownCommand();
-void pipeManager();
+//void pipeManager();
 pm commandLine(char* buffer);
 
 void bash() {
@@ -31,7 +31,7 @@ int readInput(){
         return -1;
     }else if(charBelongs(buffer,'|')){
         putChar('\n');
-        pipeManager();
+//        pipeManager();
     }else{
         pm fun = commandLine(buffer);
         if(fun != NULL){
@@ -83,35 +83,35 @@ pm commandLine(char* buffer){
     return NULL;
 }
 
-void pipeManager(){
-    char cmd1[MAX_SIZE_CMD],cmd2[MAX_SIZE_CMD];
-    unsigned int i=0;
-    while(buffer[i] != '|' && i < MAX_SIZE_CMD){
-        cmd1[i] = buffer[i];
-        i++;
-    }
-    if(i == MAX_SIZE_CMD){
-        unknownCommand(cmd1);
-        return;
-    }
-    cmd1[i] = '\0';
-    i++;//como estoy parado en la '|' paso al siguiente
-    unsigned int j=0;
-    while(buffer[i] != '\0' && j < MAX_SIZE_CMD){
-        cmd2[j++] = buffer[i++];
-    }
-    if(j == MAX_SIZE_CMD){
-        unknownCommand(cmd2);
-        return;
-    }
-    cmd2[j] = '\0';
-    pm fun1 = commandLine(cmd1);
-    pm fun2 = commandLine(cmd2);
-    if(fun1 == NULL || fun2 == NULL){
-        return;
-    }
-    sys_execve((void(*)())fun1,(void(*)())fun2);
-}
+//void pipeManager(){
+//    char cmd1[MAX_SIZE_CMD],cmd2[MAX_SIZE_CMD];
+//    unsigned int i=0;
+//    while(buffer[i] != '|' && i < MAX_SIZE_CMD){
+//        cmd1[i] = buffer[i];
+//        i++;
+//    }
+//    if(i == MAX_SIZE_CMD){
+//        unknownCommand(cmd1);
+//        return;
+//    }
+//    cmd1[i] = '\0';
+//    i++;//como estoy parado en la '|' paso al siguiente
+//    unsigned int j=0;
+//    while(buffer[i] != '\0' && j < MAX_SIZE_CMD){
+//        cmd2[j++] = buffer[i++];
+//    }
+//    if(j == MAX_SIZE_CMD){
+//        unknownCommand(cmd2);
+//        return;
+//    }
+//    cmd2[j] = '\0';
+//    pm fun1 = commandLine(cmd1);
+//    pm fun2 = commandLine(cmd2);
+//    if(fun1 == NULL || fun2 == NULL){
+//        return;
+//    }
+//    sys_execve((void(*)())fun1,(void(*)())fun2);
+//}
 
 void help(){
     const char* helpstring = 
