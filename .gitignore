@@ -12,3 +12,4 @@
 .bash_history
 .gdb_history
 .gdbinit
+/compile.sh
