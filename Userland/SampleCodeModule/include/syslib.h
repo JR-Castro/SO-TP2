@@ -48,14 +48,13 @@ extern uint64_t sys_kill(uint64_t pid);
 extern uint64_t sys_yield();
 extern uint64_t sys_nice(uint64_t pid, uint64_t newPriority);
 extern void sys_printSchedulerInfo();
+extern uint64_t sys_sem_open(char *sem_name, uint64_t id, uint64_t initialValue);
+extern uint64_t sys_sem_wait(void *sem);
+extern uint64_t sys_sem_post(void *sem);
+extern uint64_t sys_sem_close(void *sem);
 
 extern void div_zero();
 extern void inv_opcode();
 
-extern uint64_t sys_block(uint64_t pid);
-extern uint64_t sys_unblock(uint64_t pid);
-extern uint64_t sys_sem_open(char *sem_name, uint64_t initialValue);
-extern uint64_t sys_sem_wait(char *sem_name);
-extern uint64_t sys_sem_post(char *sem_name);
-extern uint64_t sys_sem_close(char *sem_name);
+
 #endif
