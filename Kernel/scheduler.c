@@ -69,6 +69,8 @@ _Noreturn static void noProcessFunction(int argc, char **argv);
 
 static void setRemainingTime(node_t *node);
 
+extern uint64_t setupStack(uint64_t startStack, uint64_t loader, uint64_t argc, uint64_t argv, uint64_t rip);
+
 void initializeScheduler() {
     processList.first = NULL;
     processList.last = NULL;
@@ -289,4 +291,32 @@ uint64_t schedule(uint64_t rsp) {
 
 static void setRemainingTime(node_t *node) {
     node->info.remainingCPUTime = node->info.priority * QUANTUM;
+}
+
+uint64_t waitPid(uint64_t pid) {
+    if (pid == currentProcess->info.pid)
+        return -1;
+    node_t *aux;
+    while ((aux = searchNode(pid)) != NULL && aux->info.state != KILLED) {
+        yield();
+    }
+    return pid;
+}
+
+void printSchedulerInfo() {
+    node_t *aux = currentProcess;
+    ncNewline();
+    ncPrint("Name PID Priority Stack BP");
+    while (aux != NULL) {
+        ncPrint(aux->info.argv[0]);
+        ncPrintChar(' ');
+        ncPrintDec(aux->info.pid);
+        ncPrintChar(' ');
+        ncPrintDec(aux->info.priority);
+        ncPrintChar(' ');
+        ncPrintHex(aux->info.rsp);
+        ncPrintChar(' ');
+        ncPrintHex((uint64_t) aux->info.stackMem);
+        aux = aux->next;
+    }
 }

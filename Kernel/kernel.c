@@ -8,6 +8,9 @@
 #include <memManager.h>
 #include <scheduler.h>
 
+#define MEMORY_START ((void*)0x600000)
+#define MEMORY_SIZE 134217728   //128MB
+
 extern uint8_t text;
 extern uint8_t rodata;
 extern uint8_t data;
@@ -54,10 +57,10 @@ void * initializeKernelBinary()
 int main()
 {	
 	ncClear();
-    // TODO decide actual location and size of heap
-    createMemoryManager((void*)0x900000, 16384);
+    createMemoryManager(MEMORY_START, MEMORY_SIZE);
     initializeScheduler();
-    char *argv[] = {"bash"};
+    // TODO make userland make first process
+    char *argv[] = {"Shell"};
     createProcess((void (*)(int, char **))sampleCodeModuleAddress, 1, (char **) &argv);
 	load_idt();
     forceTimerTick();

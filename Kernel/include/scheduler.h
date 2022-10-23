@@ -27,6 +27,8 @@ uint64_t nice(uint64_t pid, uint64_t newPriority);
 
 void forceTimerTick();
 
-uint64_t setupStack(uint64_t startStack, uint64_t loader, uint64_t argc, uint64_t argv, uint64_t rip);
+void printSchedulerInfo();
+
+uint64_t waitPid(uint64_t pid);
 
 #endif //SCHEDULER_H

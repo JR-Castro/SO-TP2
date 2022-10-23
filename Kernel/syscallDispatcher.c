@@ -26,8 +26,25 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
         case 6:
             sys_copymem(rdi,(uint8_t *) rsi, rdx);
             break;
-        default:
+        case 7:
+            return getPid();
+        case 8:
+            return block(rdi);
+        case 9:
+            return unblock(rdi);
+        case 10:
+            return kill(rdi);
+        case 11:
+            yield();
+        case 12:
+            return nice(rdi, rsi);
+        case 13:
+            printSchedulerInfo();
             break;
+        case 14:
+            return waitPid(rdi);
+        default:
+            return -1;
     }
     return 0;
 }
