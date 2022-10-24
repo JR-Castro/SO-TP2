@@ -6,20 +6,11 @@
 #define STARTID 0
 #define STARTLOCK 1
 
-typedef struct pidNode {
-    uint64_t val;
-    struct pidNode *next;
-} pidNode_t;
-
-typedef struct pidList {
-    pidNode_t *first, *last;
-} pidList_t;
-
 typedef struct sem {
     char *name;
     uint64_t id;
     uint64_t lock, value, waiting;
-    pidList_t waitingList, usingList;
+    uint64List_t waitingList, usingList;
 } sem_t;
 
 typedef struct semNode {
@@ -47,15 +38,7 @@ static semNode_t *semListSearchByName(const char *name);
 static void semNodeFree(semNode_t *node);
 
 // Functions for managing list of pids
-static int pidListAddProcess(pidList_t *list, uint64_t pid);
 
-static pidNode_t *pidListSearch(pidList_t *list, uint64_t pid);
-
-static int pidListRemoveProcess(pidList_t *list, uint64_t pid);
-
-static uint64_t getFirstPid(pidList_t *list);
-
-static void pidListFree(pidList_t *list);
 
 
 // Functions for managing semaphores
@@ -66,14 +49,14 @@ void *sem_open(const char *name, uint64_t id, uint64_t startValue) {
         node = semListSearchById(id);
     }
     if (node != NULL) {
-        if (pidListAddProcess(&(node->sem->usingList), getPid()))
+        if (uint64ListAddNode(&(node->sem->usingList), getPid()))
             return NULL;
         return node;
     }
 
     node = semListSearchByName(name);
     if (node != NULL) {
-        if (pidListAddProcess(&(node->sem->usingList), getPid()))
+        if (uint64ListAddNode(&(node->sem->usingList), getPid()))
             return NULL;
         return node;
     }
@@ -84,18 +67,18 @@ void *sem_open(const char *name, uint64_t id, uint64_t startValue) {
 
 void sem_post(void *sem) {
     sem_t *s = (sem_t *) sem;
-    uint64_t pid = getFirstPid(&(s->waitingList));
+    uint64_t pid = uint64ListGetFirst(&(s->waitingList));
     // Retry until a process is unblocked
     while (pid != 0) {
         if (unblock(pid) == 0)
             break;
-        pid = getFirstPid(&(s->waitingList));
+        pid = uint64ListGetFirst(&(s->waitingList));
     }
 }
 
 int sem_wait(void *sem) {
     sem_t *s = (sem_t *) sem;
-    if (pidListAddProcess(&(s->waitingList), getPid()))
+    if (uint64ListAddNode(&(s->waitingList), getPid()))
         return -1;
     s->waiting++;
     block(getPid());
@@ -104,8 +87,8 @@ int sem_wait(void *sem) {
 
 void sem_close(void *sem) {
     sem_t *s = (sem_t *) sem;
-    pidListRemoveProcess(&(s->usingList), getPid());
-    pidListRemoveProcess(&(s->waitingList), getPid()); // Just in case
+    uint64ListRemoveNode(&(s->usingList), getPid());
+    uint64ListRemoveNode(&(s->waitingList), getPid()); // Just in case
     if (s->usingList.first == NULL && s->waitingList.first == NULL) {
         semListDelete(s);
         freeSemaphore(s);
@@ -114,8 +97,9 @@ void sem_close(void *sem) {
 
 static void freeSemaphore(sem_t *sem) {
     memFree(sem->name);
-    pidListFree(&(sem->waitingList));
-    pidListFree(&(sem->usingList));
+    uint64ListFree(&(sem->waitingList));
+    uint64ListFree(&(sem->usingList));
+    memFree(sem);
 }
 
 /* Creates semaphore and setups all necessary auxiliar structures
@@ -142,7 +126,7 @@ static sem_t *createSemaphore(const char *name, uint64_t startValue) {
     sem->waitingList.first = sem->waitingList.last = NULL;
     sem->usingList.first = sem->usingList.last = NULL;
 
-    if (pidListAddProcess(&(sem->usingList), getPid())) {
+    if (uint64ListAddNode(&(sem->usingList), getPid())) {
         freeSemaphore(sem);
         return NULL;
     }
@@ -232,81 +216,4 @@ static semNode_t *semListSearchByName(const char *name) {
         current = current->next;
     }
     return current;
-}
-
-// Functions for managing list of PIDs
-
-/* Adds a node with the specified pid at the end of the list
- * Returns: 0 if successful
- *          -1 if memory allocation failed*/
-static int pidListAddProcess(pidList_t *list, uint64_t pid) {
-    pidNode_t *newNode = (pidNode_t *) memAlloc(sizeof(pidNode_t));
-    if (newNode == NULL)
-        return -1;
-
-    newNode->val = pid;
-
-    if (list->first == NULL)
-        list->first = newNode;
-    else
-        list->last->next = newNode;
-    list->last = newNode;
-    return 0;
-}
-
-/* Searches specified pidList for node with matching pid
- * Returns: Pointer to node if found
- *          NULL otherwise*/
-static pidNode_t *pidListSearch(pidList_t *list, uint64_t pid) {
-    pidNode_t *current = list->first;
-    while (current != NULL) {
-        if (current->val == pid)
-            break;
-        current = current->next;
-    }
-    return current;
-}
-
-/* Deletes pid from list of PIDs
- * Returns: 0 if sucessfully deleted
- *          1 if PID wasn't found
- */
-static int pidListRemoveProcess(pidList_t *list, uint64_t pid) {
-    pidNode_t *previous = NULL, *current = list->first;
-    while (current != NULL) {
-        if (current->val == pid)
-            break;
-        previous = current;
-        current = current->next;
-    }
-    if (current == NULL)
-        return 1;   // Nothing to delete
-
-    if (previous == NULL)
-        list->first = current->next;
-    else
-        previous->next = current->next;
-    memFree(current);
-    return 0;
-}
-
-/* Returns: pid of first node if list is not empty
- *          0 if list is empty*/
-static uint64_t getFirstPid(pidList_t *list) {
-    if (list->first == NULL)
-        return 0;
-    uint64_t pid = list->first->val;
-    pidNode_t *first = list->first;
-    list->first = list->first->next;
-    memFree(first);
-    return pid;
-}
-
-static void pidListFree(pidList_t *list) {
-    pidNode_t *current = list->first, *next;
-    while (current != NULL) {
-        next = current->next;
-        memFree(current);
-        current = next;
-    }
 }

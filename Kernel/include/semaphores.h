@@ -6,21 +6,22 @@
 #include "memManager.h"
 #include "lib.h"
 #include "scheduler.h"
+#include "uint64ListADT.h"
 
-//typedef struct pidNode {
+//typedef struct uint64Node {
 //    uint64_t val;
-//    struct pidNode *next;
-//} pidNode_t;
+//    struct uint64Node *next;
+//} uint64Node_t;
 //
-//typedef struct pidList {
-//    pidNode_t *first, *last;
-//} pidList_t;
+//typedef struct uint64List {
+//    uint64Node_t *first, *last;
+//} uint64List_t;
 //
 //typedef struct sem {
 //    char *name;
 //    uint64_t id;
 //    uint64_t lock, value, waiting;
-//    pidList_t waitingList, usingList;
+//    uint64List_t waitingList, usingList;
 //} sem_t;
 //
 //typedef struct semNode {
