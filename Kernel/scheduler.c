@@ -98,7 +98,10 @@ uint64_t createProcess(void (*f)(int, char **), int argc, char **argv) {
     processNode->info.ppid = (currentProcess == NULL ? 0 : currentProcess->info.pid);
     processNode->info.stackMem = processStack;
     processNode->info.argv = memAlloc(sizeof(char *) * argc);
-    processNode->info.rsp = setupStack((uint64_t) processStack + STACK_SIZE - 1, (uint64_t) loaderFunction, argc,
+    uint64_t stackStart = (uint64_t) processStack + STACK_SIZE - 1;
+    // Align memory to 64 bits
+    stackStart -= stackStart % 8;
+    processNode->info.rsp = setupStack(stackStart, (uint64_t) loaderFunction, argc,
                                        (uint64_t) processNode->info.argv, (uint64_t) f);
     processNode->info.state = READY;
     processNode->info.priority = DEFAULT_PRIORITY;
