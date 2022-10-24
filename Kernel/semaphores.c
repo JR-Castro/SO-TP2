@@ -44,6 +44,8 @@ static semNode_t *semListSearchById(uint64_t id);
 
 static semNode_t *semListSearchByName(const char *name);
 
+static void semNodeFree(semNode_t *node);
+
 // Functions for managing list of pids
 static int pidListAddProcess(pidList_t *list, uint64_t pid);
 
@@ -195,8 +197,13 @@ static int semListDelete(sem_t *sem) {
         semList = current->next;
     else
         previous->next = current;
-    memFree(current);
+    semNodeFree(current);
     return 0;
+}
+
+static void semNodeFree(semNode_t *node) {
+    freeSemaphore(node->sem);
+    memFree(node);
 }
 
 /* Searches semList for node with same id
