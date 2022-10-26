@@ -27,7 +27,7 @@ $(MODULE): $(OBJECTS) $(OBJECTS_SHELL) $(OBJECTS_LIBS) $(OBJECTS_ASM) $(OBJECTS_
 	$(LD) $(LDFLAGS) -T sampleCodeModule.ld -o ../$(MODULE) $(OBJECTS) $(OBJECTS_SHELL) $(OBJECTS_LIBS) $(OBJECTS_ASM) $(OBJECTS_TESTS) $(STATICLIBS)
 
 clean:
-	rm -rf *.o ./asm/*.o 
+	rm -rf *.o ./asm/*.o ./Libs/*.o ./Shell/*.o ./Tests/*.o
 
 %.o: %.c
 	$(GCC) $(GCCFLAGS) -I./include -c $< -o $@
