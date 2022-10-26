@@ -20,27 +20,27 @@ typedef struct uint64List {
  * Returns: 0 if successful
  *          -1 if memory allocation failed
  */
-static int uint64ListAddNode(uint64List_t *list, uint64_t pid);
+int uint64ListAddNode(uint64List_t *list, uint64_t pid);
 
 /* Searches specified uint64List for node with matching pid
  * Returns: Pointer to node if found
  *          NULL otherwise
  */
-static uint64Node_t *uint64ListSearch(uint64List_t *list, uint64_t pid);
+uint64Node_t *uint64ListSearch(uint64List_t *list, uint64_t pid);
 
 /* Deletes pid from list of PIDs
  * Returns: 0 if sucessfully deleted
  *          1 if PID wasn't found
  */
-static int uint64ListRemoveNode(uint64List_t *list, uint64_t pid);
+int uint64ListRemoveNode(uint64List_t *list, uint64_t pid);
 
 /* Returns: pid of first node if list is not empty
  *          0 if list is empty
  */
-static uint64_t uint64ListGetFirst(uint64List_t *list);
+uint64_t uint64ListGetFirst(uint64List_t *list);
 
 /* Frees all allocated memory in a uint64List */
-static void uint64ListFree(uint64List_t *list);
+void uint64ListFree(uint64List_t *list);
 
 
 

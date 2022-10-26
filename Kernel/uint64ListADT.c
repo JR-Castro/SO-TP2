@@ -2,7 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "include/uint64ListADT.h"
 
-static int uint64ListAddNode(uint64List_t *list, uint64_t pid) {
+int uint64ListAddNode(uint64List_t *list, uint64_t pid) {
     uint64Node_t *newNode = (uint64Node_t *) memAlloc(sizeof(uint64Node_t));
     if (newNode == NULL)
         return -1;
@@ -17,7 +17,7 @@ static int uint64ListAddNode(uint64List_t *list, uint64_t pid) {
     return 0;
 }
 
-static uint64Node_t *uint64ListSearch(uint64List_t *list, uint64_t pid) {
+uint64Node_t *uint64ListSearch(uint64List_t *list, uint64_t pid) {
     uint64Node_t *current = list->first;
     while (current != NULL) {
         if (current->val == pid)
@@ -27,7 +27,7 @@ static uint64Node_t *uint64ListSearch(uint64List_t *list, uint64_t pid) {
     return current;
 }
 
-static int uint64ListRemoveNode(uint64List_t *list, uint64_t pid) {
+int uint64ListRemoveNode(uint64List_t *list, uint64_t pid) {
     uint64Node_t *previous = NULL, *current = list->first;
     while (current != NULL) {
         if (current->val == pid)
@@ -46,7 +46,7 @@ static int uint64ListRemoveNode(uint64List_t *list, uint64_t pid) {
     return 0;
 }
 
-static uint64_t uint64ListGetFirst(uint64List_t *list) {
+uint64_t uint64ListGetFirst(uint64List_t *list) {
     if (list->first == NULL)
         return 0;
     uint64_t pid = list->first->val;
@@ -56,7 +56,7 @@ static uint64_t uint64ListGetFirst(uint64List_t *list) {
     return pid;
 }
 
-static void uint64ListFree(uint64List_t *list) {
+void uint64ListFree(uint64List_t *list) {
     uint64Node_t *current = list->first, *next;
     while (current != NULL) {
         next = current->next;

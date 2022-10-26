@@ -31,13 +31,13 @@ void sem_wait(sem_t *sem){
 
 void sem_post(sem_t *sem){
 	acquire(&(sem->lock));
-	s->value++;
-	if (s->waiting > 0)
+	sem->value++;
+	if (sem->waiting > 0)
 		sys_sem_post((void*)sem);
 	release(&(sem->lock));
 }
 
 void sem_close(sem_t *sem){
-	sys_sem_close(sem)
+	sys_sem_close(sem);
 }
 
