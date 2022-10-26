@@ -1,6 +1,6 @@
 // This is a personal academic project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <bash.h>
+#include "../include/bash.h"
 
 #define MAX_SIZE_CMD 32
 static char buffer[32];
@@ -74,9 +74,12 @@ pm commandLine(char* buffer){
         putChar('\n');
         savePrintMemParams(buffer);
         return (pm)printmem;
-    }else if( (strcmp(buffer,"inforeg")) == 0){
+    }else if( (strcmp(buffer,"inforeg")) == 0) {
         putChar('\n');
-        return (pm)inforeg;
+        return (pm) inforeg;
+    } else if ( (strcmp(buffer, "memtest")) == 0) {
+        putChar('\n');
+        return (pm) test_mm(0, NULL);
     }else{//el comando ingresado no existe.
         unknownCommand();
     }

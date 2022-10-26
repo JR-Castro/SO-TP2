@@ -2,6 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <syscallDispatcher.h>
 #include <scheduler.h>
+#include "memManager.h"
 
 static uint64_t sys_read(unsigned int fd,char* output, uint64_t count);
 static void sys_write(unsigned fd,const char* buffer, uint64_t count);
@@ -42,6 +43,14 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
             return nice(rdi, rsi);
         case 13:
             printSchedulerInfo();
+            break;
+        case 14:
+            return (uint64_t) memAlloc((size_t)rdi);
+        case 15:
+            memFree((void *)rdi);
+            break;
+        case 16:
+            memoryInfo((struct memoryInfo*)rdi);
             break;
 
         default:

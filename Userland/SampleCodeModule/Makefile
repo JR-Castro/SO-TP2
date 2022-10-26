@@ -1,27 +1,33 @@
 include ../Makefile.inc
 
 MODULE=0000-sampleCodeModule.bin
-#SOURCES=$(wildcard [^_]*.c)
+MODULE-ELF=0000-sampleCodeModule.elf
 SOURCES=$(wildcard *.c)
+SOUCES_SHELL=$(wildcard Shell/*.c)
+SOURCES_LIBS=$(wildcard Libs/*.c)
+SOURCES_TESTS=$(wildcard Tests/*.c)
 SOURCES_ASM=$(wildcard asm/*.asm)
+
 OBJECTS=$(SOURCES:.c=.o)
+OBJECTS_SHELL=$(SOUCES_SHELL:.c=.o)
+OBJECTS_LIBS=$(SOURCES_LIBS:.c=.o)
+OBJECTS_TESTS=$(SOURCES_TESTS:.c=.o)
 OBJECTS_ASM=$(SOURCES_ASM:.asm=.o)
 
 STATICLIBS=
 
 all: $(MODULE)
 
+# Apparently, the order of the objects is important for the linkeditor :(
 gdb: GCCFLAGS := -g $(GCCFLAGS)
 gdb: $(MODULE)
-	$(LD) $(LDFLAGS) -T sampleCodeModule.ld --oformat=elf64-x86-64 -o ../0000-sampleCodeModule.elf $(OBJECTS) $(OBJECTS_ASM)
+	$(LD) $(LDFLAGS) -T sampleCodeModule.ld --oformat=elf64-x86-64 -o ../$(MODULE-ELF) $(OBJECTS) $(OBJECTS_SHELL) $(OBJECTS_LIBS) $(OBJECTS_ASM) $(OBJECTS_TESTS) $(STATICLIBS)
 
-$(MODULE): $(OBJECTS) $(OBJECTS_ASM)
-	$(LD) $(LDFLAGS) -T sampleCodeModule.ld -o ../$(MODULE) $(OBJECTS) $(OBJECTS_ASM) $(STATICLIBS)
-#	$(GCC) $(GCCFLAGS) -T sampleCodeModule.ld _loader.c $(SOURCES) -o ../$(MODULE)
-#	$(GCC) $(GCCFLAGS) -T sampleCodeModule.ld -Wl,--oformat=elf64-x86-64 _loader.c $(SOURCES) -o ../0000-sampleCodeModule.elf
+$(MODULE): $(OBJECTS) $(OBJECTS_SHELL) $(OBJECTS_LIBS) $(OBJECTS_ASM) $(OBJECTS_TESTS)
+	$(LD) $(LDFLAGS) -T sampleCodeModule.ld -o ../$(MODULE) $(OBJECTS) $(OBJECTS_SHELL) $(OBJECTS_LIBS) $(OBJECTS_ASM) $(OBJECTS_TESTS) $(STATICLIBS)
 
 clean:
-	rm -rf *.o ./asm/*.o 
+	rm -rf *.o ./asm/*.o ./Libs/*.o ./Shell/*.o ./Tests/*.o
 
 %.o: %.c
 	$(GCC) $(GCCFLAGS) -I./include -c $< -o $@

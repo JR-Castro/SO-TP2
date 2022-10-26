@@ -44,7 +44,6 @@ typedef struct processList {
 } pList_t;
 
 static uint64_t pidCount = FIRST_PID;
-static uint8_t firstProcess = 1;
 static pList_t processList;
 static node_t *currentProcess;
 static node_t *noProcess;
@@ -275,10 +274,7 @@ uint64_t schedule(uint64_t rsp) {
             addProcess(currentProcess);
         }
     } else {
-        if (!firstProcess)
-            currentProcess->info.rsp = rsp;
-        else
-            firstProcess = 0;
+        currentProcess->info.rsp = rsp;
         if (currentProcess->info.remainingCPUTime <= 0 && processList.nReady > 0) {
             currentProcess = getReadyNode();
             setRemainingTime(currentProcess);
