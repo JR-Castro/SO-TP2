@@ -2,7 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 /* sampleCodeModule.c */
 
-#include <bash.h>
+#include "include/bash.h"
 
 char * v = (char*)0xB8000 + 79 * 2;
 

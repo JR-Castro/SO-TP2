@@ -12,6 +12,9 @@ GLOBAL sys_kill
 GLOBAL sys_yield
 GLOBAL sys_nice
 GLOBAL sys_printSchedulerInfo
+GLOBAL sys_alloc
+GLOBAL sys_free
+GLOBAL sys_memInfo
 
 GLOBAL inv_opcode
 GLOBAL div_zero
@@ -69,6 +72,15 @@ sys_nice:
 
 sys_printSchedulerInfo:
     syscallHandler 13
+
+sys_alloc:
+    syscallHandler 14
+
+sys_free:
+    syscallHandler 15
+
+sys_memInfo:
+    syscallHandler 16
 
 inv_opcode:
     ud2

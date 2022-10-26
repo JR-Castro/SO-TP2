@@ -1,6 +1,6 @@
 // This is a personal academic project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <syslib.h>
+#include "include/syslib.h"
 
 unsigned int strlen(const char *str){
     unsigned int len = 0;
@@ -339,4 +339,12 @@ uint32_t uintToBase(uint64_t value, char *buffer, uint32_t base)
 	}
 
 	return digits;
+}
+
+void *lib_memset(void *s, int c, size_t n)
+{
+    unsigned char *p = s;
+    while (n--)
+        *p++ = (unsigned char)c;
+    return s;
 }
