@@ -8,6 +8,7 @@
 #include <scheduler.h>
 #include <inforeg.h>
 #include <defs.h>
+#include "semaphores.h"
 
 #define STDIN 0
 #define STDOUT 1

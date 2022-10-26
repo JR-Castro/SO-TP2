@@ -34,39 +34,39 @@ typedef struct PCB {
 typedef struct processNode {
     pcb_t info;
     struct processNode *next;
-} node_t;
+} pidNode_t;
 
 typedef struct processList {
-    node_t *first;
-    node_t *last;
+    pidNode_t *first;
+    pidNode_t *last;
     uint64_t size;
     uint64_t nReady;
 } pList_t;
 
 static uint64_t pidCount = FIRST_PID;
 static pList_t processList;
-static node_t *currentProcess;
-static node_t *noProcess;
+static pidNode_t *currentProcess;
+static pidNode_t *noProcess;
 
 static uint64_t getNewPid();
 
 static void copyArguments(char **dest, int argc, char **argv);
 
-static void addProcess(node_t *node);
+static void addProcess(pidNode_t *node);
 
-static node_t *removeProcess();
+static pidNode_t *removeProcess();
 
 static void loaderFunction(int argc, char **argv, void (*f)(int, char **));
 
-static node_t *searchNode(uint64_t pid);
+static pidNode_t *searchNode(uint64_t pid);
 
 static void exitProcess();
 
-static void freeProcess(node_t *node);
+static void freeProcess(pidNode_t *node);
 
 _Noreturn static void noProcessFunction(int argc, char **argv);
 
-static void setRemainingTime(node_t *node);
+static void setRemainingTime(pidNode_t *node);
 
 extern uint64_t setupStack(uint64_t startStack, uint64_t loader, uint64_t argc, uint64_t argv, uint64_t rip);
 
@@ -85,7 +85,7 @@ uint64_t createProcess(void (*f)(int, char **), int argc, char **argv) {
     uint64_t pid = getNewPid();
 
     // Get memory for new process stack
-    node_t *processNode = memAlloc(sizeof(node_t));
+    pidNode_t *processNode = memAlloc(sizeof(pidNode_t));
     if (processNode == NULL)
         return 0;
     void *processStack = memAlloc(STACK_SIZE);
@@ -114,8 +114,8 @@ uint64_t createProcess(void (*f)(int, char **), int argc, char **argv) {
     return pid;
 }
 
-static node_t *getReadyNode() {
-    node_t *ret = removeProcess();
+static pidNode_t *getReadyNode() {
+    pidNode_t *ret = removeProcess();
     while (ret->info.state != READY) {
         if (ret->info.state == KILLED)
             freeProcess(ret);
@@ -140,7 +140,7 @@ static uint64_t getNewPid() {
     return ++pidCount;
 }
 
-static void addProcess(node_t *node) {
+static void addProcess(pidNode_t *node) {
     if (node == NULL)
         return;
     if (processList.first == NULL)
@@ -154,11 +154,11 @@ static void addProcess(node_t *node) {
         processList.nReady++;
 }
 
-static node_t *removeProcess() {
+static pidNode_t *removeProcess() {
     if (processList.size == 0)
         return NULL;
 
-    node_t *ans = processList.first;
+    pidNode_t *ans = processList.first;
     if (processList.last == ans)
         processList.last = NULL;
 
@@ -175,7 +175,7 @@ _Noreturn static void noProcessFunction(int argc, char **argv) {
 }
 
 static int changeState(uint64_t pid, State newState) {
-    node_t *aux = searchNode(pid);
+    pidNode_t *aux = searchNode(pid);
     if (aux == NULL || aux->info.state == KILLED)
         return -1;
 
@@ -196,7 +196,10 @@ static int changeState(uint64_t pid, State newState) {
 uint64_t block(uint64_t pid) {
     if (pid <= FIRST_PID)
         return -1;
-    return changeState(pid, BLOCKED);
+    uint64_t ans = changeState(pid, BLOCKED);
+    if (currentProcess->info.pid == pid)
+        yield();
+    return ans;
 }
 
 uint64_t unblock(uint64_t pid) {
@@ -216,8 +219,8 @@ void yield() {
     forceTimerTick();
 }
 
-static node_t *searchNode(uint64_t pid) {
-    node_t *aux = processList.first;
+static pidNode_t *searchNode(uint64_t pid) {
+    pidNode_t *aux = processList.first;
     while (aux != NULL) {
         if (aux->info.pid == pid)
             return aux;
@@ -230,7 +233,7 @@ static void exitProcess() {
     kill(currentProcess->info.pid);
 }
 
-static void freeProcess(node_t *node) {
+static void freeProcess(pidNode_t *node) {
     for (int i = 0; i <= node->info.argc; ++i) {
         memFree(node->info.argv[i]);
     }
@@ -251,7 +254,7 @@ uint64_t getPid() {
 uint64_t nice(uint64_t pid, uint64_t newPriority) {
     if (newPriority < MIN_PRIORITY || newPriority > MAX_PRIORITY)
         return -1;
-    node_t *node;
+    pidNode_t *node;
     if (currentProcess->info.pid == pid)
         node = currentProcess;
     else {
@@ -288,14 +291,14 @@ uint64_t schedule(uint64_t rsp) {
     return currentProcess->info.rsp;
 }
 
-static void setRemainingTime(node_t *node) {
+static void setRemainingTime(pidNode_t *node) {
     node->info.remainingCPUTime = node->info.priority * QUANTUM;
 }
 
 uint64_t waitPid(uint64_t pid) {
     if (pid == currentProcess->info.pid)
         return -1;
-    node_t *aux;
+    pidNode_t *aux;
     while ((aux = searchNode(pid)) != NULL && aux->info.state != KILLED) {
         yield();
     }
@@ -303,7 +306,7 @@ uint64_t waitPid(uint64_t pid) {
 }
 
 void printSchedulerInfo() {
-    node_t *aux = currentProcess;
+    pidNode_t *aux = currentProcess;
     ncNewline();
     ncPrint("Name PID Priority Stack BP");
     while (aux != NULL) {

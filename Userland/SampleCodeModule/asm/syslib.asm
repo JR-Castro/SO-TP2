@@ -15,6 +15,10 @@ GLOBAL sys_printSchedulerInfo
 GLOBAL sys_alloc
 GLOBAL sys_free
 GLOBAL sys_memInfo
+GLOBAL sys_sem_open
+GLOBAL sys_sem_wait
+GLOBAL sys_sem_post
+GLOBAL sys_sem_close
 
 GLOBAL inv_opcode
 GLOBAL div_zero
@@ -81,6 +85,18 @@ sys_free:
 
 sys_memInfo:
     syscallHandler 16
+
+sys_sem_open:
+    syscallHandler 17
+
+sys_sem_wait:
+    syscallHandler 18
+
+sys_sem_post:
+    syscallHandler 19
+
+sys_sem_close:
+    syscallHandler 20
 
 inv_opcode:
     ud2
