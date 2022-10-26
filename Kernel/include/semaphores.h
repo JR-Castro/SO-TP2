@@ -8,27 +8,6 @@
 #include "scheduler.h"
 #include "uint64ListADT.h"
 
-//typedef struct uint64Node {
-//    uint64_t val;
-//    struct uint64Node *next;
-//} uint64Node_t;
-//
-//typedef struct uint64List {
-//    uint64Node_t *first, *last;
-//} uint64List_t;
-//
-//typedef struct sem {
-//    char *name;
-//    uint64_t id;
-//    uint64_t lock, value, waiting;
-//    uint64List_t waitingList, usingList;
-//} sem_t;
-//
-//typedef struct semNode {
-//    sem_t *sem;
-//    struct semNode *next;
-//} semNode_t;
-
 /* Opens semaphore: first it searches by id, then by name. If none is found,
  * it makes a new one.
  * Returns:     Pointer to semaphore if found or successfully created
@@ -46,5 +25,8 @@ void sem_post(void *sem);
 
 /* Removes the process from the semaphore list, deletes it if it's not used anymore */
 void sem_close(void *sem);
+
+//extern int _xadd(int inc, int *value);
+extern int _xchg(int *lock, int value);
 
 #endif //SEMAPHORES_H

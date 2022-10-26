@@ -4,7 +4,7 @@
 #include "./include/semaphores.h"
 
 #define STARTID 0
-#define STARTLOCK 1
+#define STARTLOCK 0
 
 typedef struct sem {
     char *name;
@@ -20,6 +20,7 @@ typedef struct semNode {
 
 int idCounter = STARTID;
 semNode_t *semList = NULL;
+int semListLock = STARTLOCK;
 
 // Functions for managing semaphores
 static sem_t *createSemaphore(const char *name, uint64_t startValue);
@@ -37,14 +38,17 @@ static semNode_t *semListSearchByName(const char *name);
 
 static void semNodeFree(semNode_t *node);
 
-// Functions for managing list of pids
+// Functions for managing locks
 
+static void acquire(int *lock);
 
+static void release(int *lock);
 
 // Functions for managing semaphores
 
 void *sem_open(const char *name, uint64_t id, uint64_t startValue) {
     semNode_t *node;
+    acquire(&semListLock);
     if (id <= STARTID || id > idCounter) {
         node = semListSearchById(id);
     }
@@ -62,7 +66,9 @@ void *sem_open(const char *name, uint64_t id, uint64_t startValue) {
     }
 
     // semaphore doesn't exist, create it.
-    return (void *) createSemaphore(name, startValue);
+    void *sem = createSemaphore(name, startValue);
+    release(&semListLock);
+    return sem;
 }
 
 void sem_post(void *sem) {
@@ -87,12 +93,14 @@ int sem_wait(void *sem) {
 
 void sem_close(void *sem) {
     sem_t *s = (sem_t *) sem;
+    acquire(&semListLock);
     uint64ListRemoveNode(&(s->usingList), getPid());
     uint64ListRemoveNode(&(s->waitingList), getPid()); // Just in case
     if (s->usingList.first == NULL && s->waitingList.first == NULL) {
         semListDelete(s);
         freeSemaphore(s);
     }
+    release(&semListLock);
 }
 
 static void freeSemaphore(sem_t *sem) {
@@ -216,4 +224,14 @@ static semNode_t *semListSearchByName(const char *name) {
         current = current->next;
     }
     return current;
+}
+
+// Functions for managing locks
+
+static void acquire(int *lock){
+    while (_xchg(lock, 1) != 0);
+}
+
+static void release(int *lock){
+    _xchg(lock, 0);
 }
