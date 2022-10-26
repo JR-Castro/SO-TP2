@@ -3,6 +3,7 @@
 
 #include "syslib.h"
 #include "test_mm.h"
+#include "test_processes.h"
 
 void bash();
 

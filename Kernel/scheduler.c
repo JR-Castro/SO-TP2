@@ -21,8 +21,8 @@ typedef enum {
 typedef struct PCB {
     uint64_t rsp;
     State state;
-    uint8_t ppid;
-    uint8_t pid;
+    uint64_t ppid;
+    uint64_t pid;
     uint64_t fd[MAXFD];
     uint64_t priority;
     uint64_t remainingCPUTime;
@@ -182,13 +182,15 @@ static int changeState(uint64_t pid, State newState) {
     if (aux->info.state == newState)
         return 1;
 
-    if (newState == READY && aux->info.state != READY)
-        processList.nReady++;
-    else if (aux->info.state == READY && newState != READY)
+    if (aux->info.state == READY  && newState != READY)
         processList.nReady--;
+    else if (aux->info.state != READY && newState == READY)
+        processList.nReady++;
 
-    if (newState == KILLED)
-        freeProcess(aux);
+    aux->info.state = newState;
+
+    if (pid == currentProcess->info.pid && newState != READY)
+        yield();
 
     return 0;
 }
@@ -197,8 +199,6 @@ uint64_t block(uint64_t pid) {
     if (pid <= FIRST_PID)
         return -1;
     uint64_t ans = changeState(pid, BLOCKED);
-    if (currentProcess->info.pid == pid)
-        yield();
     return ans;
 }
 

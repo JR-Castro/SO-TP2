@@ -79,7 +79,10 @@ pm commandLine(char* buffer){
         return (pm) inforeg;
     } else if ( (strcmp(buffer, "memtest")) == 0) {
         putChar('\n');
-        return (pm) test_mm(0, NULL);
+        return (pm) test_mm;
+    } else if ((strcmp(buffer, "processtest")) == 0) {
+        putChar('\n');
+        return (pm) test_processes;
     }else{//el comando ingresado no existe.
         unknownCommand();
     }
