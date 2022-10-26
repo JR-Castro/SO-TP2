@@ -7,6 +7,7 @@
 char * v = (char*)0xB8000 + 79 * 2;
 
 int main() {
-	bash();
+    char * argv[] = {"Shell"};
+    sys_createProcess((void (*)(int, char **)) bash, 1, argv);
 	return 0x600DB7E;
 }

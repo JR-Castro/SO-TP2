@@ -59,11 +59,10 @@ int main()
 	ncClear();
     createMemoryManager(MEMORY_START, MEMORY_SIZE);
     initializeScheduler();
-    // TODO make userland make first process
-    char *argv[] = {"Shell"};
-    createProcess((void (*)(int, char **))sampleCodeModuleAddress, 1, (char **) &argv);
 	load_idt();
-    forceTimerTick();
+    ((EntryPoint)sampleCodeModuleAddress)();
+    _sti();
+    _hlt();
 //	loadUserland(sampleCodeModuleAddress, (uint64_t*) 0x900000);
 	ncPrint("[Finished]");
 	return 0;
