@@ -12,6 +12,9 @@ GLOBAL sys_kill
 GLOBAL sys_yield
 GLOBAL sys_nice
 GLOBAL sys_printSchedulerInfo
+GLOBAL sys_alloc
+GLOBAL sys_free
+GLOBAL sys_memInfo
 GLOBAL sys_sem_open
 GLOBAL sys_sem_wait
 GLOBAL sys_sem_post
@@ -73,6 +76,15 @@ sys_nice:
 
 sys_printSchedulerInfo:
     syscallHandler 13
+
+sys_alloc:
+    syscallHandler 14
+
+sys_free:
+    syscallHandler 15
+
+sys_memInfo:
+    syscallHandler 16
 
 sys_sem_open:
     syscallHandler 17

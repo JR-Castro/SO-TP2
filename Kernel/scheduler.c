@@ -44,7 +44,6 @@ typedef struct processList {
 } pList_t;
 
 static uint64_t pidCount = FIRST_PID;
-static uint8_t firstProcess = 1;
 static pList_t processList;
 static pidNode_t *currentProcess;
 static pidNode_t *noProcess;
@@ -98,7 +97,10 @@ uint64_t createProcess(void (*f)(int, char **), int argc, char **argv) {
     processNode->info.ppid = (currentProcess == NULL ? 0 : currentProcess->info.pid);
     processNode->info.stackMem = processStack;
     processNode->info.argv = memAlloc(sizeof(char *) * argc);
-    processNode->info.rsp = setupStack((uint64_t) processStack + STACK_SIZE - 1, (uint64_t) loaderFunction, argc,
+    uint64_t stackStart = (uint64_t) processStack + STACK_SIZE - 1;
+    // Align memory to 64 bits
+    stackStart -= stackStart % 8;
+    processNode->info.rsp = setupStack(stackStart, (uint64_t) loaderFunction, argc,
                                        (uint64_t) processNode->info.argv, (uint64_t) f);
     processNode->info.state = READY;
     processNode->info.priority = DEFAULT_PRIORITY;
@@ -275,10 +277,7 @@ uint64_t schedule(uint64_t rsp) {
             addProcess(currentProcess);
         }
     } else {
-        if (!firstProcess)
-            currentProcess->info.rsp = rsp;
-        else
-            firstProcess = 0;
+        currentProcess->info.rsp = rsp;
         if (currentProcess->info.remainingCPUTime <= 0 && processList.nReady > 0) {
             currentProcess = getReadyNode();
             setRemainingTime(currentProcess);

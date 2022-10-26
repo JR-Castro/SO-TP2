@@ -9,12 +9,20 @@
 #define STDOUT 1
 #define STDERR 2
 
-#define EOF -1
+#define EOF (-1)
+
+typedef unsigned long size_t;
 
 typedef struct {
     uint8_t day, month, year;
     uint8_t hours, minutes, seconds;
 } time_t;
+
+struct memoryInfo {
+    size_t free;
+    size_t occupied;
+    size_t totalSize;
+};
 
 unsigned int strlen(const char *s);
 void excepDivZero();
@@ -33,6 +41,7 @@ void fibonacciNumbs();
 void printmem();
 void inforeg();
 uint32_t uintToBase(uint64_t value, char *buffer, uint32_t base);
+void *lib_memset(void *s, int c, size_t n);
 
 extern uint64_t sys_read(uint64_t fd, char *buffer, uint64_t count);
 extern uint64_t sys_write(uint64_t fd, const char *buffer, uint64_t count);
@@ -48,6 +57,9 @@ extern uint64_t sys_kill(uint64_t pid);
 extern uint64_t sys_yield();
 extern uint64_t sys_nice(uint64_t pid, uint64_t newPriority);
 extern void sys_printSchedulerInfo();
+extern void *sys_alloc(uint64_t size);
+extern void sys_free(void *ptr);
+extern void sys_memInfo(struct memoryInfo *info);
 extern uint64_t sys_sem_open(char *sem_name, uint64_t id, uint64_t initialValue);
 extern uint64_t sys_sem_wait(void *sem);
 extern uint64_t sys_sem_post(void *sem);
