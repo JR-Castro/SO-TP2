@@ -24,7 +24,7 @@ int64_t test_processes(uint64_t argc, char *argv[]){
     p_rq *p_rqs = (p_rq *) sys_alloc(sizeof(p_rq)*max_processes);
     int cycle = 0;
 
-    while (cycle < 50){
+    while (cycle < 200){
         cycle++;
 
         // Create max_processes processes
