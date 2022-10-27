@@ -42,6 +42,8 @@ int uint64ListRemoveNode(uint64List_t *list, uint64_t pid) {
         list->first = current->next;
     else
         previous->next = current->next;
+    if (current == list->last)
+        list->last = previous;
     memFree(current);
     return 0;
 }
