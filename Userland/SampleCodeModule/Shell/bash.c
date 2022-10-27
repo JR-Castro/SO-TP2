@@ -83,6 +83,9 @@ pm commandLine(char* buffer){
     } else if ((strcmp(buffer, "processtest")) == 0) {
         putChar('\n');
         return (pm) test_processes;
+    } else if ((strcmp(buffer, "priotest")) == 0) {
+        putChar('\n');
+        return (pm) test_prio;
     }else{//el comando ingresado no existe.
         unknownCommand();
     }

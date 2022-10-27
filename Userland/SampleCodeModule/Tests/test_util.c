@@ -60,12 +60,18 @@ _Noreturn void endless_loop(){
     while(1);
 }
 
+uint64_t endlessLoopPrintWait = 0;
+
+void setEndlessLoopWait(uint64_t wait) {
+    endlessLoopPrintWait = wait;
+}
+
 _Noreturn void endless_loop_print(uint64_t wait){
     uint64_t pid = sys_getpid();
     char buffer[10] = {0};
     while(1){
         uintToBase(pid, buffer, 10);
         puts(buffer);
-        bussy_wait(wait);
+        bussy_wait(endlessLoopPrintWait);
     }
 }

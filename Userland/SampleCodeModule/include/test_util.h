@@ -20,4 +20,6 @@ void endless_loop();
 
 void endless_loop_print(uint64_t wait);
 
+void setEndlessLoopWait(uint64_t wait);
+
 #endif //SO_TP2_TEST_UTIL_H
