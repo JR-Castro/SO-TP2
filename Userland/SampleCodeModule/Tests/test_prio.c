@@ -33,12 +33,12 @@ void test_prio(){
     for(i = 0; i < TOTAL_PROCESSES; i++)
         sys_block(pids[i]);
 
-    puts("CHANGING PRIORITIES WHILE BLOCKED...\n");
+    puts("\nCHANGING PRIORITIES WHILE BLOCKED...\n");
 
     for(i = 0; i < TOTAL_PROCESSES; i++)
         sys_nice(pids[i], MEDIUM);
 
-    puts("UNBLOCKING...\n");
+    puts("\nUNBLOCKING...\n");
 
     for(i = 0; i < TOTAL_PROCESSES; i++)
         sys_unblock(pids[i]);

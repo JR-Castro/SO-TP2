@@ -86,6 +86,9 @@ pm commandLine(char* buffer){
     } else if ((strcmp(buffer, "priotest")) == 0) {
         putChar('\n');
         return (pm) test_prio;
+    } else if ((strcmp(buffer, "synctest")) == 0) {
+        putChar('\n');
+        return (pm) test_sync;
     }else{//el comando ingresado no existe.
         unknownCommand();
     }

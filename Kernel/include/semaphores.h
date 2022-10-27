@@ -18,13 +18,13 @@ void *sem_open(const char *name, uint64_t id, uint64_t startValue);
 /* Waits until semaphore is posted.
  * Returns:     0 if wait was successful
  *              -1 if memory allocation failed*/
-int sem_wait(void *sem);
+int sem_wait(char *sem);
 
 /* Wakes a process in the waiting list for this semaphore */
-void sem_post(void *sem);
+void sem_post(char *sem);
 
 /* Removes the process from the semaphore list, deletes it if it's not used anymore */
-void sem_close(void *sem);
+void sem_close(char *sem);
 
 //extern int _xadd(int inc, int *value);
 extern int _xchg(int *lock, int value);

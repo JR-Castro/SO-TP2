@@ -8,8 +8,8 @@
 
 typedef struct sem {
     char *name;
-    uint64_t id;
-    uint64_t lock, value, waiting;
+    uint64_t id, value, waiting;
+    int lock;
     uint64List_t waitingList, usingList;
 } sem_t;
 
@@ -53,15 +53,21 @@ void *sem_open(const char *name, uint64_t id, uint64_t startValue) {
         node = semListSearchById(id);
     }
     if (node != NULL) {
-        if (uint64ListAddNode(&(node->sem->usingList), getPid()))
+        if (uint64ListAddNode(&(node->sem->usingList), getPid())) {
+            release(&(semListLock));
             return NULL;
+        }
+        release(&semListLock);
         return node;
     }
 
     node = semListSearchByName(name);
     if (node != NULL) {
-        if (uint64ListAddNode(&(node->sem->usingList), getPid()))
+        if (uint64ListAddNode(&(node->sem->usingList), getPid())) {
+            release(&(semListLock));
             return NULL;
+        }
+        release(&semListLock);
         return node;
     }
 
@@ -71,29 +77,75 @@ void *sem_open(const char *name, uint64_t id, uint64_t startValue) {
     return sem;
 }
 
-void sem_post(void *sem) {
-    sem_t *s = (sem_t *) sem;
-    uint64_t pid = uint64ListGetFirst(&(s->waitingList));
-    // Retry until a process is unblocked
-    while (pid != 0) {
-        if (unblock(pid) == 0)
-            break;
-        pid = uint64ListGetFirst(&(s->waitingList));
+void sem_post(char *sem) {
+    acquire(&(semListLock));
+    semNode_t *node = semListSearchByName(sem);
+    if (node == NULL) {
+        release(&(semListLock));
+        return;
     }
+    sem_t *s = node->sem;
+    release(&(semListLock));
+    acquire(&(s->lock));
+    s->value++;
+    if (s->waiting > 0) {
+        uint64_t pid = uint64ListGetFirst(&(s->waitingList));
+        // Retry until a process is unblocked
+        while (pid != 0) {
+            if (unblock(pid) == 0)
+                break;
+            else
+                s->waiting--;
+            pid = uint64ListGetFirst(&(s->waitingList));
+        }
+    }
+    release(&(s->lock));
 }
 
-int sem_wait(void *sem) {
-    sem_t *s = (sem_t *) sem;
-    if (uint64ListAddNode(&(s->waitingList), getPid()))
+int sem_wait(char *sem) {
+    acquire(&(semListLock));
+    semNode_t *node = semListSearchByName(sem);
+    if (node == NULL) {
+        release(&(semListLock));
         return -1;
-    s->waiting++;
-    block(getPid());
+    }
+    sem_t *s = node->sem;
+    release(&(semListLock));
+    acquire(&(s->lock));
+    int first = 1;
+
+    while (s->value <= 0) {
+        if (first) {
+            first = 0;
+            s->waiting++;
+        }
+        if (uint64ListAddNode(&(s->waitingList), getPid())) {
+            return -1;
+        }
+        release(&(s->lock));
+        block(getPid());
+        acquire(&(s->lock));
+    }
+
+    if (!first) {
+        s->waiting--;
+        uint64ListRemoveNode(&(s->waitingList), getPid());
+    }
+    s->value--;
+    release(&(s->lock));
+
     return 0;
 }
 
-void sem_close(void *sem) {
-    sem_t *s = (sem_t *) sem;
-    acquire(&semListLock);
+void sem_close(char *sem) {
+    acquire(&(semListLock));
+    semNode_t *node = semListSearchByName(sem);
+    if (node == NULL) {
+        release(&(semListLock));
+        return;
+    }
+    sem_t *s = node->sem;
+    acquire(&(s->lock));
     uint64ListRemoveNode(&(s->usingList), getPid());
     uint64ListRemoveNode(&(s->waitingList), getPid()); // Just in case
     if (s->usingList.first == NULL && s->waitingList.first == NULL) {
@@ -101,6 +153,7 @@ void sem_close(void *sem) {
         freeSemaphore(s);
     }
     release(&semListLock);
+    release(&(s->lock));
 }
 
 static void freeSemaphore(sem_t *sem) {
@@ -131,6 +184,7 @@ static sem_t *createSemaphore(const char *name, uint64_t startValue) {
     sem->id = ++idCounter;
     sem->value = startValue;
     sem->lock = STARTLOCK;
+    sem->name = semName;
     sem->waitingList.first = sem->waitingList.last = NULL;
     sem->usingList.first = sem->usingList.last = NULL;
 
