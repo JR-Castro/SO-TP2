@@ -161,7 +161,6 @@ static void sleep(uint64List_t *list, int *lock) {
 void printPipesInfo() {
     uint64Node_t *node = pipeList.first;
     struct pipe *p;
-    char buffer[32] = {'0'};
     ncPrint("nread nwrite readopen writeopen name\n");
     while (node != NULL) {
         p = (struct pipe*)node->val;
