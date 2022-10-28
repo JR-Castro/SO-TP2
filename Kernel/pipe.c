@@ -113,7 +113,7 @@ int pipewrite(struct pipe *p, char *addr, int n) {
             wakeup(&(p->readers));
             sleep(&(p->writers), &(p->lock));
         }
-        p->data[p->nwrite++ % PIPESIZE] = addr[i];
+        p->data[(p->nwrite)++ % PIPESIZE] = addr[i];
     }
     wakeup(&(p->readers));
     release(&(p->lock));
@@ -134,7 +134,7 @@ int piperead(struct pipe *p, char *addr, int n) {
     for (i = 0; i < n; i++) {
         if (p->nread == p->nwrite)
             break;
-        addr[i] = p->data[p->nread++ % PIPESIZE];
+        addr[i] = p->data[(p->nread)++ % PIPESIZE];
     }
     wakeup(&(p->writers));
     release(&(p->lock));

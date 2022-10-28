@@ -120,7 +120,7 @@ extern uint64_t sys_sem_close(char *sem);
 
 extern uint64_t sys_create_pipe(uint64_t fd[2]);
 
-extern int sys_connect_named_pipe(char *name);
+extern int sys_connect_named_pipe(char *name, int writeable);
 
 extern int sys_dup2(uint64_t oldfd, uint64_t newfd);
 
