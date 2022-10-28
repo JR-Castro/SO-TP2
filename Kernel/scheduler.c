@@ -373,8 +373,9 @@ int createPipe(int fd[2]) {
             flag = 1;
         }
     }
+    addReader(p);
     if (!flag) {
-        pipeclose(p);
+        pipeclose(p, 0);
         return -1;
     }
     for (int i = fd[0]; i < MAXFD; ++i) {
@@ -389,10 +390,9 @@ int createPipe(int fd[2]) {
     if (!flag) {
         currentProcess->info.fd[fd[0]].p = NULL;
         currentProcess->info.fd[fd[0]].writable = -1;
-        pipeclose(p);
+        pipeclose(p, 0);
         return -1;
     }
-    addReader(p);
     addWriter(p);
     return 0;
 }
@@ -407,7 +407,6 @@ int processConnectNamedPipe(char *name, int writable) {
         if (currentProcess->info.fd[i].p == NULL) {
             currentProcess->info.fd[i].p = p;
             currentProcess->info.fd[i].writable = writable;
-            fd[1] = i;
             ret = i;
         }
     }
@@ -416,8 +415,10 @@ int processConnectNamedPipe(char *name, int writable) {
             addWriter(p);
         else
             addReader(p);
+        return ret;
     }
-    return ret;
+    pipeclose(p, writable);
+    return -1;
 }
 
 int dup2(int oldfd, int newfd) {
@@ -470,7 +471,6 @@ int readFd(int fd, char *buffer, uint64_t n) {
         return -1;
 
     fd_t *p = &(currentProcess->info.fd[fd]);
-    int i = 0;
     if (p->p != NULL) {
         if (p->writable != 0)
             return -1;

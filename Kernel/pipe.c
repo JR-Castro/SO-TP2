@@ -5,19 +5,6 @@
 
 #include "include/pipe.h"
 
-#define PIPESIZE 512
-
-struct pipe {
-    int lock;
-    char data[PIPESIZE];
-    char *name;
-    uint64_t nread;
-    uint64_t nwrite;
-    int readopen;
-    int writeopen;
-    uint64List_t readers;
-    uint64List_t writers;
-};
 
 uint64List_t pipeList;
 
@@ -25,7 +12,7 @@ static void wakeup(uint64List_t *list);
 
 static void sleep(uint64List_t *list, int *lock);
 
-static freepipe(struct pipe *p);
+static void freepipe(struct pipe *p);
 
 static void *getNamedPipe(char *name);
 
@@ -36,8 +23,8 @@ void *pipealloc() {
     p->lock = 0;
     p->nread = 0;
     p->nwrite = 0;
-    p->readopen = 1;
-    p->writeopen = 1;
+    p->readopen = 0;
+    p->writeopen = 0;
     p->name = NULL;
     p->readers.first = p->readers.last = p->writers.last = p->writers.first = NULL;
     if (uint64ListAddNode(&(pipeList), (uint64_t)p)){
@@ -52,7 +39,7 @@ void *namedPipeAlloc(char *name) {
     if (p == NULL)
         return NULL;
 
-    int n = strlen(name) + 1
+    int n = strlen(name) + 1;
     p->name = memAlloc(sizeof(char) * n);
     if (p->name == NULL){
         freepipe(p);
@@ -69,15 +56,15 @@ void *connectNamedPipe(char *name) {
 }
 
 void *getNamedPipe(char *name) {
-    uint64Node_t node = pipeList.first;
+    uint64Node_t *node = pipeList.first;
     while (node != NULL) {
-        if (strCmp(name, ((struct pipe*)node.val)->name) == 0)
-            return (void*)node.val;
+        if (strCmp(name, ((struct pipe*)node->val)->name) == 0)
+            return (void*)node->val;
     }
     return NULL;
 }
 
-static freepipe(struct pipe *p) {
+static void freepipe(struct pipe *p) {
     uint64ListRemoveNode(&(pipeList), (uint64_t) p);
     uint64ListFree(&(p->readers));
     uint64ListFree(&(p->writers));
