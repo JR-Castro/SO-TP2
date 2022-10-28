@@ -1,8 +1,8 @@
 // This is a personal academic project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <scheduler.h>
-#include <memManager.h>
-#include <lib.h>
+#include "include/scheduler.h"
+#include "include/memManager.h"
+#include "include/lib.h"
 
 #define MAXFD 5
 #define QUANTUM 1
@@ -303,6 +303,13 @@ uint64_t waitPid(uint64_t pid) {
         yield();
     }
     return pid;
+}
+
+int killed(uint64_t pid) {
+    pidNode_t *aux = searchNode(pid);
+    if (aux == NULL || aux->info.state == KILLED)
+        return 1;
+    return 0;
 }
 
 void printSchedulerInfo() {

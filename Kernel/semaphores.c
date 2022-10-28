@@ -38,11 +38,6 @@ static semNode_t *semListSearchByName(const char *name);
 
 static void semNodeFree(semNode_t *node);
 
-// Functions for managing locks
-
-static void acquire(int *lock);
-
-static void release(int *lock);
 
 // Functions for managing semaphores
 
@@ -282,10 +277,10 @@ static semNode_t *semListSearchByName(const char *name) {
 
 // Functions for managing locks
 
-static void acquire(int *lock){
+void acquire(int *lock){
     while (_xchg(lock, 1) != 0);
 }
 
-static void release(int *lock){
+void release(int *lock){
     _xchg(lock, 0);
 }

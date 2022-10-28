@@ -2,10 +2,10 @@
 #define SCHEDULER_H
 
 #include <stdint.h>
-#include <naiveConsole.h>
-#include <interrupts.h>
-#include <timerDriver.h>
-#include <defs.h>
+#include "naiveConsole.h"
+#include "interrupts.h"
+#include "timerDriver.h"
+#include "defs.h"
 
 uint64_t createProcess(void (*f)(int, char**), int argc, char **argv);
 
@@ -30,5 +30,10 @@ void forceTimerTick();
 void printSchedulerInfo();
 
 uint64_t waitPid(uint64_t pid);
+
+/* Returns: 0 if process is not killed
+ *          1 if process is killed or doesn't exist
+ */
+int killed(uint64_t pid);
 
 #endif //SCHEDULER_H

@@ -2,8 +2,8 @@
 #define NAIVE_CONSOLE_H
 
 #include <stdint.h>
-#include <lib.h>
-#include <dates.h>
+#include "lib.h"
+#include "dates.h"
 
 #define ERROR_FORMAT 0x0C
 
