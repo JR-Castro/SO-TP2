@@ -36,4 +36,14 @@ uint64_t waitPid(uint64_t pid);
  */
 int killed(uint64_t pid);
 
+int createPipe(int fd[2]);
+
+int processConnectNamedPipe(char *name, int writable);
+
+int dup2(int oldfd, int newfd);
+
+int readFd(int fd, char *buffer, uint64_t n);
+
+int writeFd(int fd, char *buffer, uint64_t count);
+
 #endif //SCHEDULER_H

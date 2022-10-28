@@ -6,10 +6,18 @@
 #include "scheduler.h"
 #include "memManager.h"
 
-int pipealloc(int fd[2]);
+void *pipealloc();
 
 int pipewrite(struct pipe *p, char *addr, int n);
 
 int piperead(struct pipe *p, char *addr, int n);
+
+void addReader(struct pipe *p);
+
+void addWriter(struct pipe *p);
+
+void pipeclose(struct pipe *p, int writable);
+
+void *connectNamedPipe(char *name);
 
 #endif // !PIPE_H
