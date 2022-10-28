@@ -29,4 +29,10 @@ void sem_close(char *sem);
 //extern int _xadd(int inc, int *value);
 extern int _xchg(int *lock, int value);
 
+// Functions for managing locks
+
+void acquire(int *lock);
+
+void release(int *lock);
+
 #endif //SEMAPHORES_H

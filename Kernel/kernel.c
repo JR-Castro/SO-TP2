@@ -1,12 +1,12 @@
 // This is a personal academic project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <stdint.h>
-#include <lib.h>
-#include <moduleLoader.h>
-#include <naiveConsole.h>
-#include <idtLoader.h>
-#include <memManager.h>
-#include <scheduler.h>
+#include "include/lib.h"
+#include "include/moduleLoader.h"
+#include "include/naiveConsole.h"
+#include "include/idtLoader.h"
+#include "include/memManager.h"
+#include "include/scheduler.h"
 
 #define MEMORY_START ((void*)0x600000)
 #define MEMORY_SIZE 134217728   //128MB

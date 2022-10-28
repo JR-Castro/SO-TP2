@@ -1,8 +1,10 @@
 // This is a personal academic project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <scheduler.h>
-#include <memManager.h>
-#include <lib.h>
+#include "include/scheduler.h"
+#include "include/memManager.h"
+#include "include/lib.h"
+#include "include/pipe.h"
+#include "include/syscallDispatcher.h"
 
 #define MAXFD 5
 #define QUANTUM 1
@@ -11,6 +13,7 @@
 #define MIN_PRIORITY 1
 #define MAX_PRIORITY 10
 #define FIRST_PID 1
+#define STARTFD 2
 
 typedef enum {
     READY,
@@ -18,12 +21,17 @@ typedef enum {
     KILLED,
 } State;
 
+typedef struct fd {
+    void *p;
+    int writable;
+} fd_t;
+
 typedef struct PCB {
     uint64_t rsp;
     State state;
     uint64_t ppid;
     uint64_t pid;
-    uint64_t fd[MAXFD];
+    fd_t fd[MAXFD];
     uint64_t priority;
     uint64_t remainingCPUTime;
     void *stackMem;
@@ -68,6 +76,8 @@ _Noreturn static void noProcessFunction(int argc, char **argv);
 
 static void setRemainingTime(pidNode_t *node);
 
+static void copyfd(fd_t *parent, fd_t *child);
+
 extern uint64_t setupStack(uint64_t startStack, uint64_t loader, uint64_t argc, uint64_t argv, uint64_t rip);
 
 void initializeScheduler() {
@@ -94,7 +104,16 @@ uint64_t createProcess(void (*f)(int, char **), int argc, char **argv) {
         return 0;
     }
     processNode->info.pid = pid;
-    processNode->info.ppid = (currentProcess == NULL ? 0 : currentProcess->info.pid);
+    if (currentProcess == NULL) {
+        processNode->info.ppid = currentProcess->info.pid;
+        for (int i = STARTFD; i < MAXFD; ++i) {
+            processNode->info.fd[i].p = NULL;
+            processNode->info.fd[i].writable = -1;
+        }
+    } else {
+        processNode->info.ppid = currentProcess->info.pid;
+        copyfd(currentProcess->info.fd, processNode->info.fd);
+    }
     processNode->info.stackMem = processStack;
     processNode->info.argv = memAlloc(sizeof(char *) * argc);
     uint64_t stackStart = (uint64_t) processStack + STACK_SIZE - 1;
@@ -104,6 +123,7 @@ uint64_t createProcess(void (*f)(int, char **), int argc, char **argv) {
                                        (uint64_t) processNode->info.argv, (uint64_t) f);
     processNode->info.state = READY;
     processNode->info.priority = DEFAULT_PRIORITY;
+
     setRemainingTime(processNode);
     copyArguments(processNode->info.argv, argc, argv);
     addProcess(processNode);
@@ -182,12 +202,20 @@ static int changeState(uint64_t pid, State newState) {
     if (aux->info.state == newState)
         return 1;
 
-    if (aux->info.state == READY  && newState != READY)
+    if (aux->info.state == READY && newState != READY)
         processList.nReady--;
     else if (aux->info.state != READY && newState == READY)
         processList.nReady++;
 
     aux->info.state = newState;
+
+    if (newState == KILLED) {
+        for (int i = 0; i < MAXFD; ++i) {
+            if (aux->info.fd[i].p != NULL) {
+                pipeclose(aux->info.fd[i].p, aux->info.fd[i].writable);
+            }
+        }
+    }
 
     if (pid == currentProcess->info.pid && newState != READY)
         yield();
@@ -305,14 +333,23 @@ uint64_t waitPid(uint64_t pid) {
     return pid;
 }
 
+int killed(uint64_t pid) {
+    pidNode_t *aux = searchNode(pid);
+    if (aux == NULL || aux->info.state == KILLED)
+        return 1;
+    return 0;
+}
+
 void printSchedulerInfo() {
     pidNode_t *aux = currentProcess;
     ncNewline();
-    ncPrint("Name PID Priority Stack BP");
+    ncPrint("Name PID PPID Priority Stack BP");
     while (aux != NULL) {
         ncPrint(aux->info.argv[0]);
         ncPrintChar(' ');
         ncPrintDec(aux->info.pid);
+        ncPrintChar(' ');
+        ncPrintDec(aux->info.ppid);
         ncPrintChar(' ');
         ncPrintDec(aux->info.priority);
         ncPrintChar(' ');
@@ -321,4 +358,151 @@ void printSchedulerInfo() {
         ncPrintHex((uint64_t) aux->info.stackMem);
         aux = aux->next;
     }
+}
+
+int createPipe(int fd[2]) {
+    int flag = 0;
+    void *p = pipealloc();
+    if (p == NULL)
+        return -1;
+    for (int i = STARTFD; i < MAXFD - 1; ++i) {
+        if (currentProcess->info.fd[i].p == NULL) {
+            currentProcess->info.fd[i].p = p;
+            currentProcess->info.fd[i].writable = 0;
+            fd[0] = i;
+            flag = 1;
+        }
+    }
+    addReader(p);
+    if (!flag) {
+        pipeclose(p, 0);
+        return -1;
+    }
+    for (int i = fd[0]; i < MAXFD; ++i) {
+        if (currentProcess->info.fd[i].p == NULL) {
+            currentProcess->info.fd[i].p = p;
+            currentProcess->info.fd[i].writable = 1;
+            fd[1] = i;
+            flag = 1;
+        } else
+            flag = 0;
+    }
+    if (!flag) {
+        currentProcess->info.fd[fd[0]].p = NULL;
+        currentProcess->info.fd[fd[0]].writable = -1;
+        pipeclose(p, 0);
+        return -1;
+    }
+    addWriter(p);
+    return 0;
+}
+
+int processConnectNamedPipe(char *name, int writable) {
+    void *p = connectNamedPipe(name);
+    int ret = 0;
+    if (p == NULL)
+        return -1;
+
+    for (int i = STARTFD; i < MAXFD; ++i) {
+        if (currentProcess->info.fd[i].p == NULL) {
+            currentProcess->info.fd[i].p = p;
+            currentProcess->info.fd[i].writable = writable;
+            ret = i;
+        }
+    }
+    if (ret) {
+        if (writable)
+            addWriter(p);
+        else
+            addReader(p);
+        return ret;
+    }
+    pipeclose(p, writable);
+    return -1;
+}
+
+int dup2(int oldfd, int newfd) {
+    if (newfd < 0 || MAXFD <= oldfd)
+        return -1;
+    if (oldfd < 0 || MAXFD <= oldfd)
+        return -1;
+    fd_t *toclose = &(currentProcess->info.fd[newfd]);
+    if (toclose->p != NULL) {
+        pipeclose(toclose->p, toclose->writable);
+        toclose->writable = -1;
+    }
+    fd_t *tocopy = &(currentProcess->info.fd[oldfd]);
+    toclose->p = tocopy->p;
+    toclose->writable = tocopy->writable;
+    return 0;
+}
+
+int writeFd(int fd, char *buffer, uint64_t count) {
+    if (fd < 0 || MAXFD <= fd)
+        return -1;
+
+    fd_t *p = &(currentProcess->info.fd[fd]);
+    int i = 0;
+    if (p->p != NULL) {
+        if (p->writable == 0)
+            return -1;
+        else
+            return pipewrite(p->p, buffer, count);
+    }
+    if (fd == STDIN) {
+        return -1;
+    }
+    if (fd == STDOUT) {
+        while (i < count) {
+            ncPrintChar(buffer[i]);
+            i++;
+        }
+    } else if (fd == STDERR) {
+        while (i < count) {
+            ncPrintCharFormat(buffer[i], ERROR_FORMAT);
+            i++;
+        }
+    }
+    return i;
+}
+
+int readFd(int fd, char *buffer, uint64_t n) {
+    if (fd < 0 || MAXFD <= fd)
+        return -1;
+
+    fd_t *p = &(currentProcess->info.fd[fd]);
+    if (p->p != NULL) {
+        if (p->writable != 0)
+            return -1;
+        else
+            return piperead(p->p, buffer, n);
+    }
+    if (fd != STDIN)
+        return -1;
+    return readBuffer(buffer, n);
+}
+
+static void copyfd(fd_t *parent, fd_t *child) {
+    for (int i = 0; i < MAXFD; ++i) {
+        child[i].p = parent[i].p;
+        child[i].writable = parent[i].writable;
+        if (child[i].p != NULL) {
+            if (child[i].writable)
+                addWriter(child[i].p);
+            else
+                addReader(child[i].p);
+        }
+    }
+}
+
+int closepipe(int fd) {
+    if (fd < 0 || MAXFD <= fd)
+        return -1;
+    fd_t *p = &(currentProcess->info.fd[fd]);
+    if (p->p != NULL) {
+        pipeclose(p->p, p->writable);
+        p->p = NULL;
+        p->writable = -1;
+    }
+    return 0;
 }
