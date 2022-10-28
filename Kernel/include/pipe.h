@@ -34,4 +34,6 @@ void pipeclose(struct pipe *p, int writable);
 
 void *connectNamedPipe(char *name);
 
+void printPipesInfo();
+
 #endif // !PIPE_H

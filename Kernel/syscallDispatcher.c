@@ -3,6 +3,7 @@
 #include "include/syscallDispatcher.h"
 #include "include/scheduler.h"
 #include "include/memManager.h"
+#include "include/pipe.h"
 
 static void sys_time(time_t * s);
 static void sys_copymem(uint64_t address, uint8_t * buffer, uint64_t length);
@@ -58,6 +59,17 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
         case 20:
             sem_close((char*)rdi);
             break;
+        case 21:
+            return createPipe((int*)rdi);
+        case 22:
+            return processConnectNamedPipe((char*)rdi, rsi);
+        case 23:
+            return dup2(rdi, rsi);
+        case 24:
+            printPipesInfo();
+            break;
+        case 25:
+            return closepipe(rdi);
         default:
             return -1;
     }

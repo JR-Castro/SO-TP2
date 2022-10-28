@@ -19,6 +19,11 @@ GLOBAL sys_sem_open
 GLOBAL sys_sem_wait
 GLOBAL sys_sem_post
 GLOBAL sys_sem_close
+GLOBAL sys_create_pipe
+GLOBAL sys_connect_named_pipe
+GLOBAL sys_dup2
+GLOBAL sys_print_pipe_info
+GLOBAL sys_close_pipe
 
 GLOBAL inv_opcode
 GLOBAL div_zero
@@ -97,6 +102,21 @@ sys_sem_post:
 
 sys_sem_close:
     syscallHandler 20
+
+sys_create_pipe:
+    syscallHandler 21
+
+sys_connect_named_pipe:
+    syscallHandler 22
+
+sys_dup2:
+    syscallHandler 23
+
+sys_print_pipe_info:
+    syscallHandler 24
+
+sys_close_pipe:
+    syscallHandler 25
 
 inv_opcode:
     ud2

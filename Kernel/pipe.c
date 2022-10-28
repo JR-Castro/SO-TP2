@@ -157,3 +157,27 @@ static void sleep(uint64List_t *list, int *lock) {
     block(getPid());
     acquire(lock);
 }
+
+void printPipesInfo() {
+    uint64Node_t *node = pipeList.first;
+    struct pipe *p;
+    char buffer[32] = {'0'};
+    ncPrint("nread nwrite readopen writeopen name\n");
+    while (node != NULL) {
+        p = (struct pipe*)node->val;
+        ncPrintDec(p->nread);
+        ncPrintChar(' ');
+        ncPrintDec(p->nwrite);
+        ncPrintChar(' ');
+        ncPrintDec(p->readopen);
+        ncPrintChar(' ');
+        ncPrintDec(p->writeopen);
+        ncPrintChar(' ');
+        if (p->name != NULL)
+            ncPrint(p->name);
+        else
+            ncPrintChar('-');
+        ncPrintChar('\n');
+        node = node->next;
+    }
+}

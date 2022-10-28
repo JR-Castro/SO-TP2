@@ -46,4 +46,6 @@ int readFd(int fd, char *buffer, uint64_t n);
 
 int writeFd(int fd, char *buffer, uint64_t count);
 
+int closepipe(int fd);
+
 #endif //SCHEDULER_H

@@ -494,3 +494,15 @@ static void copyfd(fd_t *parent, fd_t *child) {
         }
     }
 }
+
+int closepipe(int fd) {
+    if (fd < 0 || MAXFD <= fd)
+        return -1;
+    fd_t *p = &(currentProcess->info.fd[fd]);
+    if (p->p != NULL) {
+        pipeclose(p->p, p->writable);
+        p->p = NULL;
+        p->writable = -1;
+    }
+    return 0;
+}
