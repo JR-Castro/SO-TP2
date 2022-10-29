@@ -115,7 +115,13 @@ uint64_t createProcess(void (*f)(int, char **), int argc, char **argv) {
         copyfd(currentProcess->info.fd, processNode->info.fd);
     }
     processNode->info.stackMem = processStack;
+    processNode->info.argc = argc;
     processNode->info.argv = memAlloc(sizeof(char *) * argc);
+    if (processNode->info.argv == NULL) {
+        memFree(processNode->info.stackMem);
+        memFree(processNode);
+        return 0;
+    }
     uint64_t stackStart = (uint64_t) processStack + STACK_SIZE - 1;
     // Align memory to 64 bits
     stackStart -= stackStart % 8;
@@ -278,7 +284,7 @@ static void exitProcess() {
 }
 
 static void freeProcess(pidNode_t *node) {
-    for (int i = 0; i <= node->info.argc; ++i) {
+    for (int i = 0; i < node->info.argc; ++i) {
         memFree(node->info.argv[i]);
     }
     memFree(node->info.argv);
