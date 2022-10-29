@@ -3,7 +3,7 @@
 #include "../include/test_sync.h"
 
 #define SEM_ID "sem"
-#define TOTAL_PAIR_PROCESSES 1
+#define TOTAL_PAIR_PROCESSES 10
 #define N 100
 #define USESEM 1
 #define INC 1

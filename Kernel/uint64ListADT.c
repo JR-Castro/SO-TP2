@@ -14,6 +14,8 @@ int uint64ListAddNode(uint64List_t *list, uint64_t pid) {
     else
         list->last->next = newNode;
     list->last = newNode;
+    newNode->next = NULL;
+
     return 0;
 }
 
