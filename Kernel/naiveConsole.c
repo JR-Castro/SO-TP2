@@ -8,7 +8,9 @@
 #define WINDOWS 2
 
 static uint32_t uintToBase(uint64_t value, char *buffer, uint32_t base);
+// PVS warning about '0', but if i take it off it breaks
 static char buffer[64] = {'0'};
+// PVS note about constant to pointer, in this case, the video memory is always at this position
 static uint8_t *const video = (uint8_t *)VIDEOSTART;
 static uint8_t *currentVideo = (uint8_t *)VIDEOSTART;
 static const uint32_t width = WIDTH;
