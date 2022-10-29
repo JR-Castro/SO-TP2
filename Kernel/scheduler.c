@@ -137,9 +137,10 @@ uint64_t createProcess(void (*f)(int, char **), int argc, char **argv) {
 static pidNode_t *getReadyNode() {
     pidNode_t *ret = removeProcess();
     while (ret->info.state != READY) {
-        if (ret->info.state == KILLED)
+        if (ret->info.state == KILLED) {
             freeProcess(ret);
-        else
+            processList.size--;
+        } else
             addProcess(ret);
         ret = removeProcess();
     }
@@ -215,6 +216,21 @@ static int changeState(uint64_t pid, State newState) {
                 pipeclose(aux->info.fd[i].p, aux->info.fd[i].writable);
             }
         }
+        pidNode_t *previous = processList.first;
+        if (previous == aux) {    // first node in the list
+            processList.first = aux->next;
+            if (processList.last == aux)
+                processList.last = NULL;
+        } else {
+            while (previous != NULL && previous->next != aux){
+                previous = previous->next;
+            }
+            previous->next = aux->next;
+            if (processList.last == aux)
+                processList.last = previous;
+        }
+        freeProcess(aux);
+        processList.size--;
     }
 
     if (pid == currentProcess->info.pid && newState != READY)
