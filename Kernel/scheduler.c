@@ -58,7 +58,7 @@ static pidNode_t *noProcess;
 
 static uint64_t getNewPid();
 
-static void copyArguments(char **dest, int argc, char **argv);
+static int copyArguments(char **dest, int argc, char **argv);
 
 static void addProcess(pidNode_t *node);
 
@@ -115,7 +115,13 @@ uint64_t createProcess(void (*f)(int, char **), int argc, char **argv) {
         copyfd(currentProcess->info.fd, processNode->info.fd);
     }
     processNode->info.stackMem = processStack;
+    processNode->info.argc = argc;
     processNode->info.argv = memAlloc(sizeof(char *) * argc);
+    if (processNode->info.argv == NULL) {
+        memFree(processNode->info.stackMem);
+        memFree(processNode);
+        return 0;
+    }
     uint64_t stackStart = (uint64_t) processStack + STACK_SIZE - 1;
     // Align memory to 64 bits
     stackStart -= stackStart % 8;
@@ -125,7 +131,11 @@ uint64_t createProcess(void (*f)(int, char **), int argc, char **argv) {
     processNode->info.priority = DEFAULT_PRIORITY;
 
     setRemainingTime(processNode);
-    copyArguments(processNode->info.argv, argc, argv);
+    if (copyArguments(processNode->info.argv, argc, argv)) {    // memory allocation for arguments failed
+        memFree(processNode->info.stackMem);
+        memFree(processNode);
+        return 0;
+    }
     addProcess(processNode);
 
     if (currentProcess == NULL)
@@ -137,23 +147,29 @@ uint64_t createProcess(void (*f)(int, char **), int argc, char **argv) {
 static pidNode_t *getReadyNode() {
     pidNode_t *ret = removeProcess();
     while (ret->info.state != READY) {
-        if (ret->info.state == KILLED)
+        if (ret->info.state == KILLED) {
             freeProcess(ret);
-        else
+            processList.size--;
+        } else
             addProcess(ret);
         ret = removeProcess();
     }
     return ret;
 }
 
-static void copyArguments(char **dest, int argc, char **argv) {
+static int copyArguments(char **dest, int argc, char **argv) {
     for (int i = 0; i < argc; ++i) {
         size_t strsize = strlen(argv[i]);
         dest[i] = memAlloc(strsize + 1);
-        if (argv[i] == NULL)
-            return;
+        if (argv[i] == NULL){
+            for (int j = 0; j < i; ++j) {
+                memFree(dest[j]);
+            }
+            return -1;
+        }
         memcpy(dest[i], argv[i], strsize + 1);
     }
+    return 0;
 }
 
 static uint64_t getNewPid() {
@@ -215,6 +231,21 @@ static int changeState(uint64_t pid, State newState) {
                 pipeclose(aux->info.fd[i].p, aux->info.fd[i].writable);
             }
         }
+        pidNode_t *previous = processList.first;
+        if (previous == aux) {    // first node in the list
+            processList.first = aux->next;
+            if (processList.last == aux)
+                processList.last = NULL;
+        } else {
+            while (previous != NULL && previous->next != aux){
+                previous = previous->next;
+            }
+            previous->next = aux->next;
+            if (processList.last == aux)
+                processList.last = previous;
+        }
+        freeProcess(aux);
+        processList.size--;
     }
 
     if (pid == currentProcess->info.pid && newState != READY)
@@ -262,7 +293,7 @@ static void exitProcess() {
 }
 
 static void freeProcess(pidNode_t *node) {
-    for (int i = 0; i <= node->info.argc; ++i) {
+    for (int i = 0; i < node->info.argc; ++i) {
         memFree(node->info.argv[i]);
     }
     memFree(node->info.argv);
