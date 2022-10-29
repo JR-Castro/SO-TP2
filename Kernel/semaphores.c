@@ -42,7 +42,7 @@ static void semNodeFree(semNode_t *node);
 // Functions for managing semaphores
 
 void *sem_open(const char *name, uint64_t id, uint64_t startValue) {
-    semNode_t *node;
+    semNode_t *node = NULL;
     acquire(&semListLock);
     if (id <= STARTID || id > idCounter) {
         node = semListSearchById(id);
@@ -124,7 +124,6 @@ int sem_wait(char *sem) {
 
     if (!first) {
         s->waiting--;
-        uint64ListRemoveNode(&(s->waitingList), getPid());
     }
     s->value--;
     release(&(s->lock));
@@ -178,7 +177,6 @@ static sem_t *createSemaphore(const char *name, uint64_t startValue) {
     sem->lock = sem->waiting = 0;
     sem->id = ++idCounter;
     sem->value = startValue;
-    sem->lock = STARTLOCK;
     sem->name = semName;
     sem->waitingList.first = sem->waitingList.last = NULL;
     sem->usingList.first = sem->usingList.last = NULL;

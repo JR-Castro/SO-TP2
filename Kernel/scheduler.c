@@ -6,14 +6,14 @@
 #include "include/pipe.h"
 #include "include/syscallDispatcher.h"
 
-#define MAXFD 5
+#define MAXFD 10
 #define QUANTUM 1
 #define STACK_SIZE 4096 // 4Kb
 #define DEFAULT_PRIORITY 1
 #define MIN_PRIORITY 1
 #define MAX_PRIORITY 10
 #define FIRST_PID 1
-#define STARTFD 2
+#define STARTFD 3
 
 typedef enum {
     READY,
@@ -105,7 +105,7 @@ uint64_t createProcess(void (*f)(int, char **), int argc, char **argv) {
     }
     processNode->info.pid = pid;
     if (currentProcess == NULL) {
-        processNode->info.ppid = currentProcess->info.pid;
+        processNode->info.ppid = 0;
         for (int i = STARTFD; i < MAXFD; ++i) {
             processNode->info.fd[i].p = NULL;
             processNode->info.fd[i].writable = -1;
@@ -161,7 +161,7 @@ static int copyArguments(char **dest, int argc, char **argv) {
     for (int i = 0; i < argc; ++i) {
         size_t strsize = strlen(argv[i]);
         dest[i] = memAlloc(strsize + 1);
-        if (argv[i] == NULL){
+        if (dest[i] == NULL){
             for (int j = 0; j < i; ++j) {
                 memFree(dest[j]);
             }
@@ -240,6 +240,9 @@ static int changeState(uint64_t pid, State newState) {
             while (previous != NULL && previous->next != aux){
                 previous = previous->next;
             }
+            /* PVS says that previous may be a null pointer
+             * But if we're killing a process in the list, either it's the first node
+             * or there is another node pointing to it*/
             previous->next = aux->next;
             if (processList.last == aux)
                 processList.last = previous;
@@ -453,7 +456,7 @@ int processConnectNamedPipe(char *name, int writable) {
 }
 
 int dup2(int oldfd, int newfd) {
-    if (newfd < 0 || MAXFD <= oldfd)
+    if (newfd < 0 || MAXFD <= newfd)
         return -1;
     if (oldfd < 0 || MAXFD <= oldfd)
         return -1;

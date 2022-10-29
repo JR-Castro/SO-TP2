@@ -1,6 +1,5 @@
 #!/bin/bash
-cd ~ || exit
-pvs-studio-analyzer trace -- make gdb -C /root/ > /dev/null
+pvs-studio-analyzer trace -- make > /dev/null
 pvs-studio-analyzer analyze > /dev/null 2> /dev/null
 plog-converter -a '64:1,2,3;GA:1,2,3;OP:1,2,3' -t tasklist -o report.tasks PVS-Studio.log  > /dev/null
 rm -f strace_out
