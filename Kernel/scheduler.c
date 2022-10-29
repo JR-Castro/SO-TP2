@@ -58,7 +58,7 @@ static pidNode_t *noProcess;
 
 static uint64_t getNewPid();
 
-static void copyArguments(char **dest, int argc, char **argv);
+static int copyArguments(char **dest, int argc, char **argv);
 
 static void addProcess(pidNode_t *node);
 
@@ -131,7 +131,11 @@ uint64_t createProcess(void (*f)(int, char **), int argc, char **argv) {
     processNode->info.priority = DEFAULT_PRIORITY;
 
     setRemainingTime(processNode);
-    copyArguments(processNode->info.argv, argc, argv);
+    if (copyArguments(processNode->info.argv, argc, argv)) {    // memory allocation for arguments failed
+        memFree(processNode->info.stackMem);
+        memFree(processNode);
+        return 0;
+    }
     addProcess(processNode);
 
     if (currentProcess == NULL)
@@ -153,14 +157,19 @@ static pidNode_t *getReadyNode() {
     return ret;
 }
 
-static void copyArguments(char **dest, int argc, char **argv) {
+static int copyArguments(char **dest, int argc, char **argv) {
     for (int i = 0; i < argc; ++i) {
         size_t strsize = strlen(argv[i]);
         dest[i] = memAlloc(strsize + 1);
-        if (argv[i] == NULL)
-            return;
+        if (argv[i] == NULL){
+            for (int j = 0; j < i; ++j) {
+                memFree(dest[j]);
+            }
+            return -1;
+        }
         memcpy(dest[i], argv[i], strsize + 1);
     }
+    return 0;
 }
 
 static uint64_t getNewPid() {
