@@ -3,7 +3,7 @@
 
 #ifndef BUDDY
 
-#include <memManager.h>
+#include "include/memManager.h"
 
 /*
  * This memory manager is based on the one written on "C Programming Language" page 163
@@ -43,6 +43,7 @@ void *memAlloc(size_t nbytes) {
                 p->s.size = nunits;
             }
             memInfo.free -= nunits * sizeof(Header);
+            memInfo.occupied += nunits * sizeof(Header);
             freep = prevp;
             return (void *) (p + 1);
         }
@@ -55,6 +56,7 @@ void memFree(void *ap) {
     Header *freedBlock, *p;
     freedBlock = (Header *) ap - 1;               // Points to block header
     memInfo.free += freedBlock->s.size * sizeof(Header);
+    memInfo.occupied -= freedBlock->s.size * sizeof(Header);
 
     for (p = freep; !(freedBlock > p && freedBlock < p->s.ptr); p = p->s.ptr)
         if (p >= p->s.ptr && (freedBlock > p || freedBlock < p->s.ptr))
