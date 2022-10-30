@@ -41,6 +41,13 @@ cmd_t dsp_table[CMDS] = {
 
 const char *delim = " ";
 
+void freeArgs(arg_t *args, int argc) {
+    for (int i = 0; i < argc; ++i) {
+        sys_free(args[i]);
+    }
+    sys_free(args);
+}
+
 void * parse(char *cmd, char ***argv, int *argc) {
     const char *tok = strtok(cmd, delim);
     if (!tok) return NULL;
@@ -70,9 +77,7 @@ arg_t *args_parse(const char *name, int argc) {
     for (int i = 1; i < argc + 1; ++i) {
         char *newarg = strtok(NULL, delim);
         if (!newarg) {
-            for (int j = 0; j < i; ++j) {   // Free all previous arguments
-                sys_free(args[j]);
-            }
+            freeArgs(args, i);      // Free all previous arguments
             return NULL;
         }
         args[i] = sys_alloc(strlen(newarg) + 1);
@@ -168,12 +173,14 @@ _Noreturn int shell() {
             sys_waitpid(pid);
             putchar('\n');
             sys_free(cmd);
+            freeArgs(argv1, argc1);
             continue;
         }
         if (*next == '&') {
             sys_createProcess((void (*)(int, char **)) f1, argc1, argv1);
             putchar('\n');
             sys_free(cmd);
+            freeArgs(argv1, argc1);
             continue;
         }
         if (*next == '|') {
@@ -181,11 +188,14 @@ _Noreturn int shell() {
             if (f2 == NULL) {
                 puts("Error parsing command");
                 sys_free(cmd);
+                freeArgs(argv1, argc1);
                 continue;
             }
             if (sys_create_pipe((uint64_t *) pipe)){
                 puts("Error creating pipe");
                 sys_free(cmd);
+                freeArgs(argv1, argc1);
+                freeArgs(argv2, argc2);
                 continue;
             }
             int aux1, aux2;
@@ -199,6 +209,8 @@ _Noreturn int shell() {
             sys_waitpid(pid[1]);
             putchar('\n');
             sys_free(cmd);
+            freeArgs(argv1, argc1);
+            freeArgs(argv2, argc2);
             continue;
         }
     }
