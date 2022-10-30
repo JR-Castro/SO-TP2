@@ -31,7 +31,7 @@ static void growBlockArray();
 
 static int isInBlockArray(Header *block);
 
-static int deleteFromBlockArray(Header *block);
+static void deleteFromBlockArray(Header *block);
 
 void *memAlloc(size_t nbytes) {
     if (nbytes > memInfo.free)
@@ -101,6 +101,7 @@ void createMemoryManager(void *managedMemory, size_t size) {
     freep->s.ptr = managedMemory;
     freep->s.size = size / sizeof(Header);
     blocks = memAlloc(sizeof(Header*) * BLOCK);
+    size = BLOCK;
 }
 
 void memoryInfo(struct memoryInfo *info) {
@@ -114,6 +115,7 @@ static void growBlockArray() {
     memcpy(new, blocks, size);
     Header **old = blocks;
     blocks = new;
+    size += BLOCK;
     memFree(old);
 }
 
@@ -125,13 +127,16 @@ static int isInBlockArray(Header *block) {
     return 0;
 }
 
-static int deleteFromBlockArray(Header *block) {
+static void deleteFromBlockArray(Header *block) {
     uint64_t i = 0;
     for (; i < occupied; i++) {
         if (blocks[i] == block)
             break;
     }
-    memcpy(&(blocks[i]), blocks, occupied - i);
+    for (; i < occupied - 1; i++) {
+        blocks[i] = blocks[i + 1];
+    }
+    occupied--;
 }
 
 #endif //BUDDY
