@@ -11,6 +11,12 @@
 #include "test_prio.h"
 #include "test_sync.h"
 #include "wordcount.h"
+#include "loop.h"
+#include "kill.h"
+#include "printmeminfo.h"
+#include "block.h"
+#include "cat.h"
+#include "filter.h"
 
 _Noreturn int shell();
 

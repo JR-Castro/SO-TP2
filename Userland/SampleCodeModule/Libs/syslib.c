@@ -23,39 +23,6 @@
 //    return i;
 //}
 
-void printmeminfo() {
-    struct memoryInfo info;
-    sys_memInfo(&info);
-    fputs("Total memory: ", STDOUT);
-    char buffer[32] = {'0'};
-    itoa(info.totalSize, buffer);
-    puts(buffer);
-
-    fputs("Free memory: ", STDOUT);
-    itoa(info.free, buffer);
-    puts(buffer);
-
-    fputs("Used memory: ", STDOUT);
-    itoa(info.occupied, buffer);
-    puts(buffer);
-}
-
-void kill(int argc, char **argv) {
-    if (argc < 2) {
-        puts("Usage: kill <pid>");
-        return;
-    }
-    while (argc > 1) {
-        int pid = satoi(argv[argc - 1]);
-        if (pid < 0) {
-            puts("Invalid pid");
-            return;
-        }
-        sys_kill(pid);
-        argc--;
-    }
-}
-
 void getTime(){
     time_t time;
     char buffer[64] = {'0'};

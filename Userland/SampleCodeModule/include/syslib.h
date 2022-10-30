@@ -31,10 +31,6 @@ uint32_t uintToBase(uint64_t value, char *buffer, uint32_t base);
 
 void itoa(int n, char s[]);
 
-void printmeminfo();
-
-void kill(int argc, char **argv);
-
 void *lib_memset(void *s, int c, size_t n);
 
 extern uint64_t sys_read(uint64_t fd, char *buffer, uint64_t count);

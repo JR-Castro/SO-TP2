@@ -5,31 +5,36 @@
 
 #include "../include/shell.h"
 
-typedef char* arg_t;
+typedef char *arg_t;
 
 typedef struct {
     const char *name;
+
     int (*func)(int argc, char *argv[]);
+
     const int args;
     const char *doc;
 } cmd_t;
 
 void help();
+
 void mem();
 
 arg_t *args_parse(const char *name, int argc);
 
-#define CMDS 11
+#define CMDS 15
 cmd_t dsp_table[CMDS] = {
         {"help",         (int (*)(int, char **)) help,                   0, "Show this help"},
         {"mem",          (int (*)(int, char **)) printmeminfo,           0, "Show memory status"},
         {"ps",           (int (*)(int, char **)) sys_printSchedulerInfo, 0, "Show processes"},
+        {"loop",         (int (*)(int, char **)) loop,                   0, "Start a loop process"},
         {"kill",         (int (*)(int, char **)) kill,                   1, "Kill a process"},
         {"nice",         (int (*)(int, char **)) sys_nice,               1, "Change priority of a process"},
+        {"block",        block,                                          1, "Block a process"},
 //        {"sem", , 0, "Show semaphore info"},
-//        {"cat", cat, 0, "Print input to output"},
+        {"cat",          cat,                                            0, "Print input to output"},
         {"wc",           (int (*)(int, char **)) wordcount,              0, "Count lines in input"},
-//        {"filter", filtervocals, 0, "Filter vocals from input"},
+        {"filter",       filter,                                         0, "Filter vocals from input"},
         {"pipe",         (int (*)(int, char **)) sys_print_pipe_info,    0, "Show pipe status"},
 //        {"phylo", phylo, 0, "Interactive philosophers"},
         {"processtest",  (int (*)(int, char **)) test_processes,         2, "Test process creation, blocking and killing"},
@@ -48,7 +53,7 @@ void freeArgs(arg_t *args, int argc) {
     sys_free(args);
 }
 
-void * parse(char *cmd, char ***argv, int *argc) {
+void *parse(char *cmd, char ***argv, int *argc) {
     const char *tok = strtok(cmd, delim);
     if (!tok) return NULL;
 
@@ -114,7 +119,7 @@ int pid[2];
 
 static void createWriterProcessWithPipe(int argc, char **argv) {
     int writer = 1;
-    sys_close_pipe(pipe[(writer+1)%2]);
+    sys_close_pipe(pipe[(writer + 1) % 2]);
     sys_dup2(pipe[writer], writer);
     sys_close_pipe(pipe[writer]);
     int i = CMDS;
@@ -129,7 +134,7 @@ static void createWriterProcessWithPipe(int argc, char **argv) {
 
 static void createReaderProcessWithPipe(int argc, char **argv) {
     int writer = 0;
-    sys_close_pipe(pipe[(writer+1)%2]);
+    sys_close_pipe(pipe[(writer + 1) % 2]);
     sys_dup2(pipe[writer], writer);
     sys_close_pipe(pipe[writer]);
     int i = CMDS;
@@ -159,7 +164,7 @@ _Noreturn int shell() {
         putchar('\n');
 
         // Get first function with argc and arguments
-        int (*f1)(int, char**) = parse(cmd, &argv1, &argc1);
+        int (*f1)(int, char **) = parse(cmd, &argv1, &argc1);
 
         if (f1 == NULL) {
             puts("Error parsing command");
@@ -184,14 +189,14 @@ _Noreturn int shell() {
             continue;
         }
         if (*next == '|') {
-            int (*f2)(int, char**) = parse(NULL, &argv2, &argc2);
+            int (*f2)(int, char **) = parse(NULL, &argv2, &argc2);
             if (f2 == NULL) {
                 puts("Error parsing command");
                 sys_free(cmd);
                 freeArgs(argv1, argc1);
                 continue;
             }
-            if (sys_create_pipe((uint64_t *) pipe)){
+            if (sys_create_pipe((uint64_t *) pipe)) {
                 puts("Error creating pipe");
                 sys_free(cmd);
                 freeArgs(argv1, argc1);
