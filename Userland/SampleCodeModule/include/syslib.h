@@ -4,18 +4,11 @@
 #include <stdint.h>
 #include "defs.h"
 #include "stringlib.h"
+#include "iolib.h"
 
 void excepDivZero();
 
 void excepInvalidOpcode();
-
-int puts(const char *s);
-
-int putChar(char);
-
-char getChar();
-
-int gets(char *s);
 
 unsigned int charBelongs(char *s, char c);
 
@@ -34,6 +27,12 @@ void printmem();
 void inforeg();
 
 uint32_t uintToBase(uint64_t value, char *buffer, uint32_t base);
+
+void itoa(int n, char s[]);
+
+void printmeminfo();
+
+void kill(int argc, char **argv);
 
 void *lib_memset(void *s, int c, size_t n);
 

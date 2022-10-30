@@ -375,9 +375,9 @@ int killed(uint64_t pid) {
 }
 
 void printSchedulerInfo() {
-    pidNode_t *aux = currentProcess;
+    pidNode_t *aux = processList.first;
     ncNewline();
-    ncPrint("Name PID PPID Priority Stack BP");
+    ncPrint("Name PID PPID Priority Stack BP\n");
     while (aux != NULL) {
         ncPrint(aux->info.argv[0]);
         ncPrintChar(' ');
@@ -390,6 +390,7 @@ void printSchedulerInfo() {
         ncPrintHex(aux->info.rsp);
         ncPrintChar(' ');
         ncPrintHex((uint64_t) aux->info.stackMem);
+        ncPrintChar('\n');
         aux = aux->next;
     }
 }
