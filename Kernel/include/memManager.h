@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include "lib.h"
 
 struct memoryInfo {
     size_t free;
