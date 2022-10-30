@@ -2,15 +2,6 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "../include/syslib.h"
 
-unsigned int strlen(const char *str){
-    unsigned int len = 0;
-    while(str[len]!='\0')
-    {
-        len++;
-    }
-    return len;
-}
-
 int puts(const char * str){
     int len = strlen(str);
     return sys_write(STDOUT, str, len);
@@ -95,22 +86,6 @@ void excepDivZero(){
 
 void excepInvalidOpcode(){
     inv_opcode();
-}
-
-//https://code.woboq.org/userspace/glibc/string/strcmp.c.html
-int strcmp (const char *p1, const char *p2){
-  const unsigned char *s1 = (const unsigned char *) p1;
-  const unsigned char *s2 = (const unsigned char *) p2;
-  unsigned char c1, c2;
-  do
-    {
-      c1 = (unsigned char) *s1++;
-      c2 = (unsigned char) *s2++;
-      if (c1 == '\0')
-        return c1 - c2;
-    }
-  while (c1 == c2);
-  return c1 - c2;
 }
 
 static void reverse(char s[]);

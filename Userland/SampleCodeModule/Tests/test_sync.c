@@ -4,9 +4,6 @@
 
 #define SEM_ID "sem"
 #define TOTAL_PAIR_PROCESSES 10
-#define N 100
-#define USESEM 1
-#define INC 1
 #define INCWAIT 1000000
 
 int64_t global;  //shared memory
@@ -21,20 +18,17 @@ void slowInc(int64_t *p, int64_t inc){
     *p = aux;
 }
 
-uint64_t my_process_inc(uint64_t argc, char *argv[]){
+uint64_t my_process_inc(uint64_t argc, char *argv[]){   // {name, n, inc, use_sem}
     uint64_t n;
     int8_t inc;
     int8_t use_sem;
-
-//    if (argc != 3) return -1;
-//
-//    if ((n = satoi(argv[0])) <= 0) return -1;
-//    if ((inc = satoi(argv[1])) == 0) return -1;
-//    if ((use_sem = satoi(argv[2])) < 0) return -1;
-    n = N;
-    use_sem = USESEM;
-    inc = INC;
     sem_t *sem;
+
+    if (argc < 4) return -1;
+
+    if ((n = satoi(argv[1])) <= 0) return -1;
+    if ((inc = satoi(argv[2])) == 0) return -1;
+    if ((use_sem = satoi(argv[3])) < 0) return -1;
 
     if (use_sem)
         if (!(sem = sys_sem_open(SEM_ID,3, 1))){
@@ -57,58 +51,20 @@ uint64_t my_process_inc(uint64_t argc, char *argv[]){
     return 0;
 }
 
-uint64_t my_process_dec(uint64_t argc, char *argv[]){
-    uint64_t n;
-    int8_t inc;
-    int8_t use_sem;
-
-//    if (argc != 3) return -1;
-//
-//    if ((n = satoi(argv[0])) <= 0) return -1;
-//    if ((inc = satoi(argv[1])) == 0) return -1;
-//    if ((use_sem = satoi(argv[2])) < 0) return -1;
-    n = N;
-    use_sem = USESEM;
-    inc = -INC;
-    sem_t *sem;
-
-    if (use_sem)
-        if (!(sem = sys_sem_open(SEM_ID,3, 1))){
-            puts("test_sync: ERROR opening semaphore\n");
-            return -1;
-        }
-
-    uint64_t i;
-    for (i = 0; i < n; i++){
-//        puts("wait dec\n");
-        if (use_sem) sys_sem_wait(SEM_ID);
-//        puts("Decrementando\n");
-        slowInc(&global, inc);
-        if (use_sem) sys_sem_post(SEM_ID);
-//        puts("post dec\n");
-    }
-
-    if (use_sem) sys_sem_close(SEM_ID);
-
-    return 0;
-}
-
-uint64_t test_sync(uint64_t argc, char *argv[]){ //{n, use_sem, 0}
+uint64_t test_sync(uint64_t argc, char *argv[]){ //{name, n, use_sem}
     uint64_t pids[2 * TOTAL_PAIR_PROCESSES];
 
-//    if (argc != 2) return -1;
-//
-//    char * argvDec[] = {argv[0], "-1", argv[1], NULL};
-//    char * argvInc[] = {argv[0], "1", argv[1], NULL};
-    char *argvInc[] = {"processInc"};
-    char *argvDec[] = {"processDec"};
+    if (argc < 3) return -1;
+
+    char * argvDec[] = {"processDec", argv[1], "-1", argv[2]};
+    char *argvInc[] = {"processInc", argv[1], "1", argv[2]};
 
     global = 0;
 
     uint64_t i;
     for(i = 0; i < TOTAL_PAIR_PROCESSES; i++){
-        pids[i] = sys_createProcess((void (*)(int, char **)) my_process_dec, 1, argvDec);
-        pids[i + TOTAL_PAIR_PROCESSES] = sys_createProcess((void (*)(int, char **)) my_process_inc, 1, argvInc);
+        pids[i] = sys_createProcess((void (*)(int, char **)) my_process_inc, 4, argvDec);
+        pids[i + TOTAL_PAIR_PROCESSES] = sys_createProcess((void (*)(int, char **)) my_process_inc, 4, argvInc);
     }
 
     for(i = 0; i < TOTAL_PAIR_PROCESSES; i++){

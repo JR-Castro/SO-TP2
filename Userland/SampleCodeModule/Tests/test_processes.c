@@ -17,10 +17,10 @@ int64_t test_processes(uint64_t argc, char *argv[]){
     char * argvAux[] = {"endlessLoop"};
 
     max_processes = 20;
-//    if (argc != 1) return -1;
-//
-//    if ((max_processes = satoi(argv[0])) <= 0) return -1;
-//
+    if (argc < 2) return -1;
+
+    if ((max_processes = satoi(argv[0])) <= 0) return -1;
+
     p_rq *p_rqs = (p_rq *) sys_alloc(sizeof(p_rq)*max_processes);
     int cycle = 0;
 

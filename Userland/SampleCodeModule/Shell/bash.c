@@ -125,26 +125,26 @@ pm commandLine(char* buffer){
 //    sys_execve((void(*)())fun1,(void(*)())fun2);
 //}
 
-void help(){
-    const char* helpstring = 
-    "help                 Provides help information for commands.\n"
-	"dividebyzero         Command to verify the operation of the exception routine\n"
-    "                     \"Divide by zero\"\n"
-    "invalidopcode        Command to verify the operation of the exception routine\n"
-    "                     \"Invalid Opcode\"\n"
-	"inforeg              CTRL+C takes a screenshot of registers, inforeg prints on\n"
-    "                     screen the value of all registers screenshoted.\n"
-	"printmem             Receives as argument a pointer and performs a memory dump\n"
-    "                     of 32 bytes from the address received as an argument.\n"
-    "                     Format for address has to start with 0x and be followed up\n"
-    "                     with the actual address written in hex.\n"
-	"time                 Command to display the system day and time.\n"
-    "prime                Dispalys prime numbers starting from 1.\n"
-    "fibonacci            Dispalys fibonacci series numbers.\n"
-    "COMMAND1|COMMAND2    The \"|\" operand allows the execution of multiple commands\n"
-    "                     at the same time. CTRL+L and CTRL+R stops and resumes left\n"
-    "                     and right windows. CTRL+E stops both windows and returns\n"
-    "                     to console.\n";
-    
-    puts(helpstring);
-}
+//void help(){
+//    const char* helpstring =
+//    "help                 Provides help information for commands.\n"
+//	"dividebyzero         Command to verify the operation of the exception routine\n"
+//    "                     \"Divide by zero\"\n"
+//    "invalidopcode        Command to verify the operation of the exception routine\n"
+//    "                     \"Invalid Opcode\"\n"
+//	"inforeg              CTRL+C takes a screenshot of registers, inforeg prints on\n"
+//    "                     screen the value of all registers screenshoted.\n"
+//	"printmem             Receives as argument a pointer and performs a memory dump\n"
+//    "                     of 32 bytes from the address received as an argument.\n"
+//    "                     Format for address has to start with 0x and be followed up\n"
+//    "                     with the actual address written in hex.\n"
+//	"time                 Command to display the system day and time.\n"
+//    "prime                Dispalys prime numbers starting from 1.\n"
+//    "fibonacci            Dispalys fibonacci series numbers.\n"
+//    "COMMAND1|COMMAND2    The \"|\" operand allows the execution of multiple commands\n"
+//    "                     at the same time. CTRL+L and CTRL+R stops and resumes left\n"
+//    "                     and right windows. CTRL+E stops both windows and returns\n"
+//    "                     to console.\n";
+//
+//    puts(helpstring);
+//}
