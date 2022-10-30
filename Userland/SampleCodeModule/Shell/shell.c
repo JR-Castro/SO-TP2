@@ -32,7 +32,7 @@ cmd_t dsp_table[CMDS] = {
 //        {"filter", filtervocals, 0, "Filter vocals from input"},
         {"pipe",         (int (*)(int, char **)) sys_print_pipe_info,       0, "Show pipe status"},
 //        {"phylo", phylo, 0, "Interactive philosophers"},
-        {"processtest",  (int (*)(int, char **)) test_processes,            1, "Test process creation, blocking and killing"},
+        {"processtest",  (int (*)(int, char **)) test_processes,            2, "Test process creation, blocking and killing"},
         {"prioritytest", (int (*)(int, char **)) test_prio,                 0, "Test priority"},
         {"synctest",     (int (*)(int, char **)) test_sync,                 2, "Test synchronization primitives"},
         {"memtest",      (int (*)(int, char **)) test_mm,                   0, "Test memory allocation and freeing (preferably in background)"},
