@@ -5,6 +5,7 @@
 #include "defs.h"
 #include "stringlib.h"
 #include "iolib.h"
+#include "test_util.h"
 
 void excepDivZero();
 

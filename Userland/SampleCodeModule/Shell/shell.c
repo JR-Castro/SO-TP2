@@ -19,23 +19,23 @@ void mem();
 
 arg_t *args_parse(const char *name, int argc);
 
-#define CMDS 10
+#define CMDS 11
 cmd_t dsp_table[CMDS] = {
-        {"help",         (int (*)(int, char **)) help,                      0, "Show this help"},
-        {"mem",          (int (*)(int, char **)) printmeminfo,              0, "Show memory status"},
-        {"ps",           (int (*)(int, char **)) sys_printSchedulerInfo,    0, "Show processes"},
-        {"kill",         (int (*)(int, char **)) kill,                      1, "Kill a process"},
-        {"nice",         (int (*)(int, char **)) sys_nice,                  1, "Change priority of a process"},
+        {"help",         (int (*)(int, char **)) help,                   0, "Show this help"},
+        {"mem",          (int (*)(int, char **)) printmeminfo,           0, "Show memory status"},
+        {"ps",           (int (*)(int, char **)) sys_printSchedulerInfo, 0, "Show processes"},
+        {"kill",         (int (*)(int, char **)) kill,                   1, "Kill a process"},
+        {"nice",         (int (*)(int, char **)) sys_nice,               1, "Change priority of a process"},
 //        {"sem", , 0, "Show semaphore info"},
 //        {"cat", cat, 0, "Print input to output"},
-//        {"wc", wordcount, 0, "Count lines in input"},
+        {"wc",           (int (*)(int, char **)) wordcount,              0, "Count lines in input"},
 //        {"filter", filtervocals, 0, "Filter vocals from input"},
-        {"pipe",         (int (*)(int, char **)) sys_print_pipe_info,       0, "Show pipe status"},
+        {"pipe",         (int (*)(int, char **)) sys_print_pipe_info,    0, "Show pipe status"},
 //        {"phylo", phylo, 0, "Interactive philosophers"},
-        {"processtest",  (int (*)(int, char **)) test_processes,            2, "Test process creation, blocking and killing"},
-        {"prioritytest", (int (*)(int, char **)) test_prio,                 0, "Test priority"},
-        {"synctest",     (int (*)(int, char **)) test_sync,                 2, "Test synchronization primitives"},
-        {"memtest",      (int (*)(int, char **)) test_mm,                   0, "Test memory allocation and freeing (preferably in background)"},
+        {"processtest",  (int (*)(int, char **)) test_processes,         2, "Test process creation, blocking and killing"},
+        {"prioritytest", (int (*)(int, char **)) test_prio,              0, "Test priority"},
+        {"synctest",     (int (*)(int, char **)) test_sync,              2, "Test synchronization primitives"},
+        {"memtest",      (int (*)(int, char **)) test_mm,                0, "Test memory allocation and freeing (preferably in background)"},
 //        {"exit",         (int (*)(int, char **)) sys_exit,                  0, "Exit the shell"},
 };
 
@@ -102,6 +102,41 @@ int getInput(char *s) {
     return i;
 }
 
+// pipe[0]: Lectura
+// pipe[1]: Escritura
+int pipe[2];
+int pid[2];
+
+static void createWriterProcessWithPipe(int argc, char **argv) {
+    int writer = 1;
+    sys_close_pipe(pipe[(writer+1)%2]);
+    sys_dup2(pipe[writer], writer);
+    sys_close_pipe(pipe[writer]);
+    int i = CMDS;
+    while (i--) {
+        cmd_t cur = dsp_table[i];
+        if (strcmp(cur.name, argv[0]) == 0) {
+            pid[writer] = sys_createProcess((void (*)(int, char **)) cur.func, argc, argv);
+            break;
+        }
+    }
+}
+
+static void createReaderProcessWithPipe(int argc, char **argv) {
+    int writer = 0;
+    sys_close_pipe(pipe[(writer+1)%2]);
+    sys_dup2(pipe[writer], writer);
+    sys_close_pipe(pipe[writer]);
+    int i = CMDS;
+    while (i--) {
+        cmd_t cur = dsp_table[i];
+        if (strcmp(cur.name, argv[0]) == 0) {
+            pid[writer] = sys_createProcess((void (*)(int, char **)) cur.func, argc, argv);
+            break;
+        }
+    }
+}
+
 _Noreturn int shell() {
     char **argv1, **argv2;
     int argc1, argc2;
@@ -148,22 +183,20 @@ _Noreturn int shell() {
                 sys_free(cmd);
                 continue;
             }
-            uint64_t fd[2];
-            if (sys_create_pipe(fd)){
+            if (sys_create_pipe((uint64_t *) pipe)){
                 puts("Error creating pipe");
                 sys_free(cmd);
                 continue;
             }
-            sys_dup2(fd[1], 1);
-            int pida = sys_createProcess((void (*)(int, char **)) f1, argc1, argv1);
-            sys_dup2(fd[0], 0);
-            int pidb = sys_createProcess((void (*)(int, char **)) f2, argc2, argv2);
-            sys_close_pipe(fd[0]);
-            sys_close_pipe(fd[1]);
-            sys_close_pipe(0);
-            sys_close_pipe(1);
-            sys_waitpid(pida);
-            sys_waitpid(pidb);
+            int aux1, aux2;
+            aux1 = sys_createProcess(createWriterProcessWithPipe, argc1, argv1);
+            aux2 = sys_createProcess(createReaderProcessWithPipe, argc2, argv2);
+            sys_waitpid(aux1);
+            sys_waitpid(aux2);
+            sys_close_pipe(pipe[0]);
+            sys_close_pipe(pipe[1]);
+            sys_waitpid(pid[0]);
+            sys_waitpid(pid[1]);
             putchar('\n');
             sys_free(cmd);
             continue;

@@ -104,9 +104,9 @@ uint64_t createProcess(void (*f)(int, char **), int argc, char **argv) {
         return 0;
     }
     processNode->info.pid = pid;
-    if (currentProcess == NULL) {
+    if (currentProcess == NULL || currentProcess == noProcess) {
         processNode->info.ppid = 0;
-        for (int i = STARTFD; i < MAXFD; ++i) {
+        for (int i = 0; i < MAXFD; ++i) {
             processNode->info.fd[i].p = NULL;
             processNode->info.fd[i].writable = -1;
         }
@@ -406,6 +406,7 @@ int createPipe(int fd[2]) {
             currentProcess->info.fd[i].writable = 0;
             fd[0] = i;
             flag = 1;
+            break;
         }
     }
     addReader(p);
@@ -419,6 +420,7 @@ int createPipe(int fd[2]) {
             currentProcess->info.fd[i].writable = 1;
             fd[1] = i;
             flag = 1;
+            break;
         } else
             flag = 0;
     }
