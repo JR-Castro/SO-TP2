@@ -22,7 +22,7 @@ void mem();
 
 arg_t *args_parse(const char *name, int argc);
 
-#define CMDS 15
+#define CMDS 16
 cmd_t dsp_table[CMDS] = {
         {"help",         (int (*)(int, char **)) help,                   0, "Show this help"},
         {"mem",          (int (*)(int, char **)) printmeminfo,           0, "Show memory status"},
@@ -36,7 +36,7 @@ cmd_t dsp_table[CMDS] = {
         {"wc",           (int (*)(int, char **)) wordcount,              0, "Count lines in input"},
         {"filter",       filter,                                         0, "Filter vocals from input"},
         {"pipe",         (int (*)(int, char **)) sys_print_pipe_info,    0, "Show pipe status"},
-//        {"phylo", phylo, 0, "Interactive philosophers"},
+        {"phylo",        (int (*)(int, char **)) philosophers,           0, "Interactive philosophers"},
         {"processtest",  (int (*)(int, char **)) test_processes,         2, "Test process creation, blocking and killing"},
         {"prioritytest", (int (*)(int, char **)) test_prio,              0, "Test priority"},
         {"synctest",     (int (*)(int, char **)) test_sync,              2, "Test synchronization primitives"},

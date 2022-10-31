@@ -303,3 +303,11 @@ void *lib_memset(void *s, int c, size_t n)
         *p++ = (unsigned char)c;
     return s;
 }
+
+void acquire(int *lock) {
+    while (_xchg(lock, 1) != 0);
+}
+
+void release(int *lock) {
+    _xchg(lock,0);
+}

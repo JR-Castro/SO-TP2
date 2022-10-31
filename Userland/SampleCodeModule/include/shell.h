@@ -17,6 +17,7 @@
 #include "block.h"
 #include "cat.h"
 #include "filter.h"
+#include "philosophers.h"
 
 _Noreturn int shell();
 

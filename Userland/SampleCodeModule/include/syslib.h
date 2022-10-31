@@ -101,5 +101,9 @@ extern void inv_opcode();
 
 extern int _xchg(int *lock, int value);
 
+void acquire(int *lock);
+
+void release(int *lock);
+
 
 #endif
