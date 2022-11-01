@@ -14,18 +14,20 @@ int64_t test_processes(uint64_t argc, char *argv[]){
     uint64_t alive = 0;
     uint64_t action;
     uint64_t max_processes;
+    uint64_t max_cycles;
+    uint8_t infinite = 0;
     char * argvAux[] = {"endlessLoop"};
 
-    max_processes = 20;
-//    if (argc != 1) return -1;
-//
-//    if ((max_processes = satoi(argv[0])) <= 0) return -1;
-//
-    p_rq *p_rqs = (p_rq *) sys_alloc(sizeof(p_rq)*max_processes);
-    int cycle = 0;
+    if (argc < 3) return -1;
 
-    while (cycle < 200){
-        cycle++;
+    if ((max_processes = satoi(argv[1])) <= 0) return -1;
+
+    if ((max_cycles = satoi(argv[2])) <= 0) infinite = 1;
+
+
+    p_rq *p_rqs = (p_rq *) sys_alloc(sizeof(p_rq)*max_processes);
+
+    while (infinite || max_cycles--){
 
         // Create max_processes processes
         for(rq = 0; rq < max_processes; rq++){

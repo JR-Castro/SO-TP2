@@ -7,6 +7,6 @@
 #include "test_prio.h"
 #include "test_sync.h"
 
-void bash();
+//void bash();
 
 #endif

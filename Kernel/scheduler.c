@@ -104,9 +104,9 @@ uint64_t createProcess(void (*f)(int, char **), int argc, char **argv) {
         return 0;
     }
     processNode->info.pid = pid;
-    if (currentProcess == NULL) {
+    if (currentProcess == NULL || currentProcess == noProcess) {
         processNode->info.ppid = 0;
-        for (int i = STARTFD; i < MAXFD; ++i) {
+        for (int i = 0; i < MAXFD; ++i) {
             processNode->info.fd[i].p = NULL;
             processNode->info.fd[i].writable = -1;
         }
@@ -375,9 +375,9 @@ int killed(uint64_t pid) {
 }
 
 void printSchedulerInfo() {
-    pidNode_t *aux = currentProcess;
+    pidNode_t *aux = processList.first;
     ncNewline();
-    ncPrint("Name PID PPID Priority Stack BP");
+    ncPrint("Name PID PPID Priority Stack BP\n");
     while (aux != NULL) {
         ncPrint(aux->info.argv[0]);
         ncPrintChar(' ');
@@ -390,6 +390,7 @@ void printSchedulerInfo() {
         ncPrintHex(aux->info.rsp);
         ncPrintChar(' ');
         ncPrintHex((uint64_t) aux->info.stackMem);
+        ncPrintChar('\n');
         aux = aux->next;
     }
 }
@@ -405,6 +406,7 @@ int createPipe(int fd[2]) {
             currentProcess->info.fd[i].writable = 0;
             fd[0] = i;
             flag = 1;
+            break;
         }
     }
     addReader(p);
@@ -418,6 +420,7 @@ int createPipe(int fd[2]) {
             currentProcess->info.fd[i].writable = 1;
             fd[1] = i;
             flag = 1;
+            break;
         } else
             flag = 0;
     }

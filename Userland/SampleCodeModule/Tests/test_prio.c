@@ -22,29 +22,29 @@ void test_prio(){
         pids[i] = sys_createProcess((void (*)(int, char **)) endless_loop_print, 1, argv);
 
     bussy_wait(WAIT);
-    puts("\nCHANGING PRIORITIES...\n");
+    puts("\nCHANGING PRIORITIES...");
 
     for(i = 0; i < TOTAL_PROCESSES; i++)
         sys_nice(pids[i], prio[i]);
 
     bussy_wait(WAIT);
-    puts("\nBLOCKING...\n");
+    puts("\nBLOCKING...");
 
     for(i = 0; i < TOTAL_PROCESSES; i++)
         sys_block(pids[i]);
 
-    puts("\nCHANGING PRIORITIES WHILE BLOCKED...\n");
+    puts("\nCHANGING PRIORITIES WHILE BLOCKED...");
 
     for(i = 0; i < TOTAL_PROCESSES; i++)
         sys_nice(pids[i], MEDIUM);
 
-    puts("\nUNBLOCKING...\n");
+    puts("\nUNBLOCKING...");
 
     for(i = 0; i < TOTAL_PROCESSES; i++)
         sys_unblock(pids[i]);
 
     bussy_wait(WAIT);
-    puts("\nKILLING...\n");
+    puts("\nKILLING...");
 
     for(i = 0; i < TOTAL_PROCESSES; i++)
         sys_kill(pids[i]);

@@ -7,6 +7,7 @@
 #include "include/idtLoader.h"
 #include "include/memManager.h"
 #include "include/scheduler.h"
+#include "include/keyboardDriver.h"
 
 #define MEMORY_START ((void*)0x600000)
 #define MEMORY_SIZE 134217728   //128MB
@@ -57,13 +58,15 @@ void * initializeKernelBinary()
 
 int main()
 {	
-	ncClear();
+  	ncClear();
     createMemoryManager(MEMORY_START, MEMORY_SIZE);
     initializeScheduler();
-	load_idt();
+    initKeyboard();
+  	load_idt();
     ((EntryPoint)sampleCodeModuleAddress)();
     _sti();
-    _hlt();
+    while (1)
+        _hlt();
 //	loadUserland(sampleCodeModuleAddress, (uint64_t*) 0x900000);
 	ncPrint("[Finished]");
 	return 0;

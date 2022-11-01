@@ -2,80 +2,51 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "../include/syslib.h"
 
-unsigned int strlen(const char *str){
-    unsigned int len = 0;
-    while(str[len]!='\0')
-    {
-        len++;
-    }
-    return len;
-}
 
-int puts(const char * str){
-    int len = strlen(str);
-    return sys_write(STDOUT, str, len);
-}
-
-int putChar(char c){
-    return sys_write(STDOUT, &c, 1);
-}
-
-int gets(char * s){
-    int i = 0, c = getChar();
-    while (c != '\n' && c != EOF)
-    {
-        s[i] = c;
-        if(s[i] == '\b' && i > 0){
-            i--;
-            putChar(c);
-        }else if(s[i] == '\b' && i == 0 ){
-            //no hago nada
-        }else{
-            i++;
-            putChar(c);
-        }
-        c = getChar();
-    }
-    s[i] = '\0';
-    return i;
-}
+//int gets(char * s){
+//    int i = 0, c = getChar();
+//    while (c != '\n' && c != EOF)
+//    {
+//        s[i] = c;
+//        if(s[i] == '\b' && i > 0){
+//            i--;
+//            putChar(c);
+//        }else if(s[i] == '\b' && i == 0 ){
+//            //no hago nada
+//        }else{
+//            i++;
+//            putChar(c);
+//        }
+//        c = getChar();
+//    }
+//    s[i] = '\0';
+//    return i;
+//}
 
 void getTime(){
     time_t time;
     char buffer[64] = {'0'};
     sys_time(&time);
 
-    putChar('\n');
+    putchar('\n');
     uintToBase(time.hours, buffer, 10);
-    puts(buffer);
-    putChar(':');
+    fputs(buffer, STDOUT);
+    putchar(':');
     uintToBase(time.minutes, buffer, 10);
-    puts(buffer);
-    putChar(':');
+    fputs(buffer, STDOUT);
+    putchar(':');
     uintToBase(time.seconds, buffer, 10);
     puts(buffer);
-    putChar('\n');
 
     uintToBase(time.day, buffer, 10);
-    puts(buffer);
-    putChar('/');
+    fputs(buffer, STDOUT);
+    putchar('/');
     uintToBase(time.month, buffer, 10);
-    puts(buffer);
-    putChar('/');
+    fputs(buffer, STDOUT);
+    putchar('/');
     uintToBase(time.year+2000, buffer, 10);
     puts(buffer);
-    putChar('\n');
-    
-}
 
-char getChar(){
-    char c;
-    // while (sys_read(STDIN, &c, 1) == 0)
-    // {
-    //     ;
-    // }
-    sys_read(STDIN, &c, 1);
-    return c;
 }
 
 //Retorna 1 si lo encuentra, 0 sino
@@ -95,22 +66,6 @@ void excepDivZero(){
 
 void excepInvalidOpcode(){
     inv_opcode();
-}
-
-//https://code.woboq.org/userspace/glibc/string/strcmp.c.html
-int strcmp (const char *p1, const char *p2){
-  const unsigned char *s1 = (const unsigned char *) p1;
-  const unsigned char *s2 = (const unsigned char *) p2;
-  unsigned char c1, c2;
-  do
-    {
-      c1 = (unsigned char) *s1++;
-      c2 = (unsigned char) *s2++;
-      if (c1 == '\0')
-        return c1 - c2;
-    }
-  while (c1 == c2);
-  return c1 - c2;
 }
 
 static void reverse(char s[]);
@@ -158,19 +113,20 @@ int isPrime(int n)
 void printPrime(){
     char num[30];
     int i=2;
-    puts("Prime numbers: ");
-    puts("1, ");
+    fputs("Prime numbers: ", STDOUT);
+    fputs("1, ", STDOUT);
     while(1){
         if(isPrime(i)){
             if(num<0){//por si se pasa del max integer
                 return;
             }
             itoa(i,num);
-            puts(num);
-            puts(",\n");
+            fputs(num, STDOUT);
+            fputs(", ", STDOUT);
         }
         i++;
     }
+    putchar('\n');
 }
 
 //Ciclo infinito que imprime numeros de secuencia de fibonacci
@@ -178,11 +134,11 @@ void fibonacciNumbs(){
     char num[30];
     int t1 = 0, t2 = 1;
     long nextTerm = t1 + t2;
-    puts("Fibonacci Series: 0, 1, ");
+    fputs("Fibonacci Series: 0, 1, ", STDOUT);
     while(1) {
         itoa(nextTerm,num);
-        puts(num);
-        puts(",");
+        fputs(num, STDOUT);
+        fputs(", ", STDOUT);
         t1 = t2;
         t2 = nextTerm;
         nextTerm = t1 + t2;
@@ -190,8 +146,8 @@ void fibonacciNumbs(){
             puts("\b");
             return;
         }
-        puts("\n");
     }
+    putchar('\n');
 }
 
 char valueToHexChar(unsigned char value) {
@@ -240,13 +196,13 @@ int checkPrintMemParams(char *s,uint64_t* address){
     *address = 0;
     uint64_t size = strlen(s);//le resto el "printmem"
     if(size<3 || size>11 || s[0]!='0' || s[1]!='x'){
-		puts("\nIncorrect address format\n");
+		puts("\nIncorrect address format.");
         return 0;
     }	
     unsigned int i=2;
     while(s[i] != '\0' && i < 12){
         if((s[i] < '0' || s[i] > '9') && (s[i] < 'a' || s[i] > 'f')){
-			puts("\nAddress can't be accesed\n");
+			puts("\nAddress can't be accesed");
             return -1;
         }
         if(s[i]>='0' && s[i]<='9'){
@@ -255,10 +211,10 @@ int checkPrintMemParams(char *s,uint64_t* address){
 		}
 		else if(s[i]>='a' && s[i]<='f'){
 			if(i == 10){
-				puts("\nAddress can't be accesed\n");
+				puts("\nAddress can't be accesed");
 				return -1;
 			}else if(i == 11 && s[i-1] == '9' && s[i] > 'b'){
-				puts("\nAddress can't be accesed\n");
+				puts("\nAddress can't be accesed");
 				return -1;
 			}
 			*address *= 16;
@@ -280,13 +236,13 @@ void printmem(){
 
     for(int i=0; i<32 ; i++){
         if(i%8==0)
-		    putChar('\n');
-		putChar(valueToHexChar(copy[i]>>4));
-		putChar(valueToHexChar(copy[i]&0x0F));
-		putChar(' ');
-		putChar(' ');
+		    putchar('\n');
+		putchar(valueToHexChar(copy[i]>>4));
+		putchar(valueToHexChar(copy[i]&0x0F));
+		putchar(' ');
+		putchar(' ');
     }
-    putChar(' ');
+    putchar('\n');
 }
 
 void inforeg(){
@@ -295,16 +251,15 @@ void inforeg(){
     uint64_t regval[18];
     int sysret = sys_getregs(regval);
     if (sysret == 0){
-        puts("No registers to print.\n");
+        puts("No registers to print.");
         return;
     } 
     char buffer[64] = {'0'};
     for(int i=0;i<18;i++){
-        puts(registers[i]);
-        puts(": 0x");
+        fputs(registers[i], STDOUT);
+        fputs(": 0x", STDOUT);
         uintToBase(regval[i], buffer, 16);
         puts(buffer);
-        putChar('\n');
     }
 }
 
@@ -347,4 +302,12 @@ void *lib_memset(void *s, int c, size_t n)
     while (n--)
         *p++ = (unsigned char)c;
     return s;
+}
+
+void acquire(int *lock) {
+    while (_xchg(lock, 1) != 0);
+}
+
+void release(int *lock) {
+    _xchg(lock,0);
 }

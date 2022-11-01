@@ -7,8 +7,9 @@
 
 /*
  * This memory manager is based on the one written on "C Programming Language" page 163
- * TODO Free asumes that the pointer given is a pointer to a valid block, that may not always be the case
  */
+
+#define BLOCK 512
 
 union header {
     struct {
@@ -21,7 +22,16 @@ typedef union header Header;
 
 //static Header base;
 static Header *freep = NULL;
+static Header **blocks = NULL;
+uint64_t size = 0;
+uint64_t occupied = 0;
 struct memoryInfo memInfo;
+
+static void growBlockArray();
+
+static int isInBlockArray(Header *block);
+
+static void deleteFromBlockArray(Header *block);
 
 void *memAlloc(size_t nbytes) {
     if (nbytes > memInfo.free)
@@ -42,6 +52,10 @@ void *memAlloc(size_t nbytes) {
                 p += p->s.size;
                 p->s.size = nunits;
             }
+            if (occupied == size - 2) {
+                growBlockArray();
+            }
+            blocks[occupied++] = p;
             memInfo.free -= nunits * sizeof(Header);
             memInfo.occupied += nunits * sizeof(Header);
             freep = prevp;
@@ -55,8 +69,12 @@ void *memAlloc(size_t nbytes) {
 void memFree(void *ap) {
     Header *freedBlock, *p;
     freedBlock = (Header *) ap - 1;               // Points to block header
+    if (!isInBlockArray(freedBlock)) {
+        return;
+    }
     memInfo.free += freedBlock->s.size * sizeof(Header);
     memInfo.occupied -= freedBlock->s.size * sizeof(Header);
+    deleteFromBlockArray(freedBlock);
 
     for (p = freep; !(freedBlock > p && freedBlock < p->s.ptr); p = p->s.ptr)
         if (p >= p->s.ptr && (freedBlock > p || freedBlock < p->s.ptr))
@@ -82,12 +100,43 @@ void createMemoryManager(void *managedMemory, size_t size) {
     freep = managedMemory;
     freep->s.ptr = managedMemory;
     freep->s.size = size / sizeof(Header);
+    blocks = memAlloc(sizeof(Header*) * BLOCK);
+    size = BLOCK;
 }
 
 void memoryInfo(struct memoryInfo *info) {
     info->free = memInfo.free;
     info->totalSize = memInfo.totalSize;
     info->occupied = memInfo.totalSize - memInfo.free;
+}
+
+static void growBlockArray() {
+    Header **new = memAlloc(sizeof(Header**) * (size + BLOCK));
+    memcpy(new, blocks, size);
+    Header **old = blocks;
+    blocks = new;
+    size += BLOCK;
+    memFree(old);
+}
+
+static int isInBlockArray(Header *block) {
+    for (uint64_t i = 0; i < occupied; i++) {
+        if (blocks[i] == block)
+            return 1;
+    }
+    return 0;
+}
+
+static void deleteFromBlockArray(Header *block) {
+    uint64_t i = 0;
+    for (; i < occupied; i++) {
+        if (blocks[i] == block)
+            break;
+    }
+    for (; i < occupied - 1; i++) {
+        blocks[i] = blocks[i + 1];
+    }
+    occupied--;
 }
 
 #endif //BUDDY

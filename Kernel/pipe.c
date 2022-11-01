@@ -23,8 +23,8 @@ void *pipealloc() {
     p->lock = 0;
     p->nread = 0;
     p->nwrite = 0;
-    p->readopen = 0;
-    p->writeopen = 0;
+    p->readopen = 1;
+    p->writeopen = 1;
     p->name = NULL;
     p->readers.first = p->readers.last = p->writers.last = p->writers.first = NULL;
     if (uint64ListAddNode(&(pipeList), (uint64_t)p)){

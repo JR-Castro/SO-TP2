@@ -69,9 +69,9 @@ void setEndlessLoopWait(uint64_t wait) {
 _Noreturn void endless_loop_print(uint64_t wait){
     uint64_t pid = sys_getpid();
     char buffer[10] = {0};
+    uintToBase(pid, buffer, 10);
     while(1){
-        uintToBase(pid, buffer, 10);
-        puts(buffer);
+        fputs(buffer, STDOUT);
         bussy_wait(endlessLoopPrintWait);
     }
 }
