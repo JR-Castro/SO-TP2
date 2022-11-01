@@ -4,7 +4,6 @@ EXTERN syscallDispatcher
 SECTION .text
 
 _syscallHandler:
-	push rax
 	push rbx
 	push rcx
 	push rdx
@@ -25,7 +24,7 @@ _syscallHandler:
 	;rdi, rsi, rdx, rcx |||, r8 y r9
 	mov rcx, rax
 	mov r8, rsp
-    call syscallDispatcher
+  call syscallDispatcher
 
 	pop r15
 	pop r14
@@ -41,7 +40,5 @@ _syscallHandler:
 	pop rdx
 	pop rcx
 	pop rbx
-	; Instead of pop rax
-	add rsp, 8
 
-    iretq
+  iretq
