@@ -1,6 +1,6 @@
 // This is a personal academic project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <idtLoader.h>
+#include "include/idtLoader.h"
 
 #pragma pack(push)		/* Push de la alineación actual */
 #pragma pack (1) 		/* Alinear las siguiente estructuras a 1 byte */
@@ -28,8 +28,6 @@ void load_idt() {
   setup_IDT_entry (0x20, (uint64_t)&_irq00Handler);
   setup_IDT_entry(0x21,(uint64_t)&_irq01Handler);
   setup_IDT_entry (0x80, (uint64_t)&_syscallHandler);
-  //Keyboard
-  // picMasterMask(0xFD);
   //Timer tick and keyboard.
   picMasterMask(0xFC);
   picSlaveMask(0xFF);
