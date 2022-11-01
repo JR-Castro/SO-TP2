@@ -25,7 +25,9 @@ void yield();
 
 uint64_t nice(uint64_t pid, uint64_t newPriority);
 
-void forceTimerTick();
+extern void forceTimerTick();
+
+extern void syscallExit();
 
 void printSchedulerInfo();
 
@@ -47,5 +49,7 @@ int readFd(int fd, char *buffer, uint64_t n);
 int writeFd(int fd, char *buffer, uint64_t count);
 
 int closepipe(int fd);
+
+void exitProcess();
 
 #endif //SCHEDULER_H

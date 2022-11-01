@@ -1,5 +1,6 @@
 GLOBAL forceTimerTick
 GLOBAL setupStack
+GLOBAL syscallExit
 
 section .text
 
@@ -48,6 +49,17 @@ setupStack:
     push 0xc
 
     mov rax, rsp
+
+    mov rsp, rbp
+    pop rbp
+    ret
+
+syscallExit:
+    push rbp
+    mov rbp, rsp
+
+    mov rax, 26
+    int 0x80
 
     mov rsp, rbp
     pop rbp

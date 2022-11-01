@@ -37,6 +37,7 @@ typedef struct PCB {
     void *stackMem;
     char **argv;
     int argc;
+    uint64List_t waiting;
 } pcb_t;
 
 typedef struct processNode {
@@ -67,8 +68,6 @@ static pidNode_t *removeProcess();
 static void loaderFunction(int argc, char **argv, void (*f)(int, char **));
 
 static pidNode_t *searchNode(uint64_t pid);
-
-static void exitProcess();
 
 static void freeProcess(pidNode_t *node);
 
@@ -115,6 +114,7 @@ uint64_t createProcess(void (*f)(int, char **), int argc, char **argv) {
         copyfd(currentProcess->info.fd, processNode->info.fd);
     }
     processNode->info.stackMem = processStack;
+    processNode->info.waiting.first = processNode->info.waiting.last = NULL;
     processNode->info.argc = argc;
     processNode->info.argv = memAlloc(sizeof(char *) * argc);
     if (processNode->info.argv == NULL) {
@@ -161,7 +161,7 @@ static int copyArguments(char **dest, int argc, char **argv) {
     for (int i = 0; i < argc; ++i) {
         size_t strsize = strlen(argv[i]);
         dest[i] = memAlloc(strsize + 1);
-        if (dest[i] == NULL){
+        if (dest[i] == NULL) {
             for (int j = 0; j < i; ++j) {
                 memFree(dest[j]);
             }
@@ -226,18 +226,13 @@ static int changeState(uint64_t pid, State newState) {
     aux->info.state = newState;
 
     if (newState == KILLED) {
-        for (int i = 0; i < MAXFD; ++i) {
-            if (aux->info.fd[i].p != NULL) {
-                pipeclose(aux->info.fd[i].p, aux->info.fd[i].writable);
-            }
-        }
         pidNode_t *previous = processList.first;
         if (previous == aux) {    // first node in the list
             processList.first = aux->next;
             if (processList.last == aux)
                 processList.last = NULL;
         } else {
-            while (previous != NULL && previous->next != aux){
+            while (previous != NULL && previous->next != aux) {
                 previous = previous->next;
             }
             /* PVS says that previous may be a null pointer
@@ -291,11 +286,23 @@ static pidNode_t *searchNode(uint64_t pid) {
     return NULL;
 }
 
-static void exitProcess() {
+void exitProcess() {
     kill(currentProcess->info.pid);
 }
 
 static void freeProcess(pidNode_t *node) {
+
+    for (int i = 0; i < MAXFD; ++i) {   // Close all pipes
+        if (node->info.fd[i].p != NULL) {
+            pipeclose(node->info.fd[i].p, node->info.fd[i].writable);
+        }
+    }
+
+    uint64_t waiter = 0;
+    while ((waiter = uint64ListGetFirst(&(node->info.waiting))) != 0) {  // Unblock all processes waiting for finish
+        unblock(waiter);
+    }
+
     for (int i = 0; i < node->info.argc; ++i) {
         memFree(node->info.argv[i]);
     }
@@ -306,7 +313,7 @@ static void freeProcess(pidNode_t *node) {
 
 static void loaderFunction(int argc, char **argv, void (*f)(int, char **)) {
     f(argc, argv);
-    exitProcess();
+    syscallExit();
 }
 
 uint64_t getPid() {
@@ -360,9 +367,10 @@ static void setRemainingTime(pidNode_t *node) {
 uint64_t waitPid(uint64_t pid) {
     if (pid == currentProcess->info.pid)
         return -1;
-    pidNode_t *aux;
-    while ((aux = searchNode(pid)) != NULL && aux->info.state != KILLED) {
-        yield();
+    pidNode_t *aux = searchNode(pid);
+    if (aux != NULL && aux->info.state != KILLED) {
+        uint64ListAddNode(&(aux->info.waiting), getPid());
+        block(getPid());
     }
     return pid;
 }

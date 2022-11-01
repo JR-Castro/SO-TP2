@@ -95,6 +95,8 @@ extern void sys_print_pipe_info();
 
 extern uint64_t sys_close_pipe(uint64_t fd);
 
+extern void sys_exit();
+
 extern void div_zero();
 
 extern void inv_opcode();
