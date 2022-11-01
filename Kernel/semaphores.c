@@ -6,13 +6,6 @@
 #define STARTID 0
 #define STARTLOCK 0
 
-typedef struct sem {
-    char *name;
-    uint64_t id, value, waiting;
-    int lock;
-    uint64List_t waitingList, usingList;
-} sem_t;
-
 typedef struct semNode {
     sem_t *sem;
     struct semNode *next;

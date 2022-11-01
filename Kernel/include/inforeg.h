@@ -1,8 +1,8 @@
 #ifndef INFOREG_H
-#define INFOREG_h
+#define INFOREG_H
 
-#include <stdint.h>
-#include <defs.h>
+#include "stdint.h"
+#include "defs.h"
 
 void setRegisters(uint64_t * registers);
 

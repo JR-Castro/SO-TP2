@@ -8,6 +8,13 @@
 #include "scheduler.h"
 #include "uint64ListADT.h"
 
+typedef struct sem {
+    char *name;
+    uint64_t id, value, waiting;
+    int lock;
+    uint64List_t waitingList, usingList;
+} sem_t;
+
 /* Opens semaphore: first it searches by id, then by name. If none is found,
  * it makes a new one.
  * Returns:     Pointer to semaphore if found or successfully created
