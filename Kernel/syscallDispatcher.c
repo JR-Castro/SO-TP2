@@ -70,6 +70,9 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
             break;
         case 25:
             return closepipe(rdi);
+        case 26:
+            exitProcess();
+            break;
         default:
             return -1;
     }
