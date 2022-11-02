@@ -59,7 +59,7 @@ extern uint64_t sys_yield();
 
 extern uint64_t sys_nice(uint64_t pid, uint64_t newPriority);
 
-extern void sys_printSchedulerInfo();
+extern void sys_printSchedulerInfo(char *s);
 
 extern void *sys_alloc(uint64_t size);
 
@@ -96,6 +96,8 @@ extern void sys_print_pipe_info();
 extern uint64_t sys_close_pipe(uint64_t fd);
 
 extern void sys_exit();
+
+extern void sys_get_sems(char *s);
 
 extern void div_zero();
 

@@ -1,6 +1,6 @@
 // This is a personal academic project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <lib.h>
+#include "include/lib.h"
 
 void * memset(void * destination, int32_t c, uint64_t length)
 {
@@ -51,21 +51,64 @@ void * memcpy(void * destination, const void * source, uint64_t length)
 	return destination;
 }
 
-int strlen( const char *s) {
-    int i = 0;
-    while (s[i] != '\0')
-        i++;
-    return i;
-}
-
-// https://stackoverflow.com/questions/34873209/implementation-of-strcmp
-int strCmp(const char* s1, const char* s2)
-{
-    while(*s1 && (*s1 == *s2))
-    {
+int strcmp(const char *s1, const char *s2) {
+    while (*s1 && *s2 && *s1 == *s2) {
         s1++;
         s2++;
     }
-    return *(const unsigned char*)s1 - *(const unsigned char*)s2;
+    return *s1 - *s2;
 }
 
+int strlen(const char *s) {
+    int len = 0;
+    while (s[len]) len++;
+    return len;
+}
+
+char *strcpy(char *dest, const char *src) {
+    char *ret = dest;
+    while (*src) {
+        *dest = *src;
+        dest++;
+        src++;
+    }
+    *dest = '\0';
+    return ret;
+}
+
+char *strncpy(char *dest, const char *src, size_t n) {
+    char *ret = dest;
+    while (*src && n) {
+        *dest = *src;
+        dest++;
+        src++;
+        n--;
+    }
+    *dest = '\0';
+    return ret;
+}
+
+char *strcat(char *dest, const char *src) {
+    char *ret = dest;
+    while (*dest) dest++;
+    while (*src) {
+        *dest = *src;
+        dest++;
+        src++;
+    }
+    *dest = '\0';
+    return ret;
+}
+
+char *strncat(char *dest, const char *src, size_t n) {
+    char *ret = dest;
+    while (*dest) dest++;
+    while (*src && n) {
+        *dest = *src;
+        dest++;
+        src++;
+        n--;
+    }
+    *dest = '\0';
+    return ret;
+}

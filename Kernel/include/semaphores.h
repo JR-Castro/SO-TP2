@@ -36,6 +36,8 @@ void sem_close(char *sem);
 //extern int _xadd(int inc, int *value);
 extern int _xchg(int *lock, int value);
 
+void getSemaphoresInfo(char *s);
+
 // Functions for managing locks
 
 void acquire(int *lock);

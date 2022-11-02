@@ -228,7 +228,7 @@ static int semListDelete(sem_t *sem) {
     if (previous == NULL)
         semList = current->next;
     else
-        previous->next = current;
+        previous->next = current->next;
     semNodeFree(current);
     return 0;
 }
@@ -259,11 +259,35 @@ static semNode_t *semListSearchById(uint64_t id) {
 static semNode_t *semListSearchByName(const char *name) {
     semNode_t *current = semList;
     while (current != NULL) {
-        if (strCmp(current->sem->name, name) == 0)
+        if (strcmp(current->sem->name, name) == 0)
             break;
         current = current->next;
     }
     return current;
+}
+
+void getSemaphoresInfo(char *s) {
+    acquire(&semListLock);
+    semNode_t *aux = semList;
+    char title[] = "Name Id Value Waiting\n";
+    char buffer[64] = {'0'};
+    s[0] = '\0';
+    strcat(s, title);
+    while (aux != NULL) {
+        strcat(s, aux->sem->name);
+        strcat(s, " ");
+        uintToBase(aux->sem->id, buffer, 10);
+        strcat(s, buffer);
+        strcat(s, " ");
+        uintToBase(aux->sem->value, buffer, 10);
+        strcat(s, buffer);
+        strcat(s, " ");
+        uintToBase(aux->sem->waiting, buffer, 10);
+        strcat(s, buffer);
+        strcat(s, "\n");
+        aux = aux->next;
+    }
+    release(&semListLock);
 }
 
 // Functions for managing locks

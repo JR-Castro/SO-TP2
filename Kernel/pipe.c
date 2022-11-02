@@ -58,7 +58,7 @@ void *connectNamedPipe(char *name) {
 void *getNamedPipe(char *name) {
     uint64Node_t *node = pipeList.first;
     while (node != NULL) {
-        if (strCmp(name, ((struct pipe*)node->val)->name) == 0)
+        if (strcmp(name, ((struct pipe*)node->val)->name) == 0)
             return (void*)node->val;
     }
     return NULL;

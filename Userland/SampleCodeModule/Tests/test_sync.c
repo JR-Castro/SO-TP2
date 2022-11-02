@@ -38,12 +38,9 @@ uint64_t my_process_inc(uint64_t argc, char *argv[]){   // {name, n, inc, use_se
 
     uint64_t i;
     for (i = 0; i < n; i++){
-//        puts("wait inc");
         if (use_sem) sys_sem_wait(SEM_ID);
-//        puts("Incrementando");
         slowInc(&global, inc);
         if (use_sem) sys_sem_post(SEM_ID);
-//        puts("post inc");
     }
 
     if (use_sem) sys_sem_close(SEM_ID);
@@ -64,11 +61,6 @@ uint64_t test_sync(uint64_t argc, char *argv[]){ //{name, n, use_sem}
     char *argvInc[] = {"processInc", argv[1], "1", argv[2]};
 
     global = 0;
-    if (usesem)
-        if (!(sem = sys_sem_open(SEM_ID, 3, 1))) {
-            fputs("Error opening semaphore\n", STDERR);
-            return -1;
-        }
 
     uint64_t i;
     for(i = 0; i < TOTAL_PAIR_PROCESSES; i++){
@@ -80,8 +72,6 @@ uint64_t test_sync(uint64_t argc, char *argv[]){ //{name, n, use_sem}
         sys_waitpid(pids[i]);
         sys_waitpid(pids[i + TOTAL_PAIR_PROCESSES]);
     }
-
-    sys_sem_close(SEM_ID);
 
     fputs("Final value: ", STDOUT);
     char buffer[32] = {'0'};
