@@ -59,7 +59,7 @@ extern uint64_t sys_yield();
 
 extern uint64_t sys_nice(uint64_t pid, uint64_t newPriority);
 
-extern void sys_printSchedulerInfo();
+extern void sys_printSchedulerInfo(char *s);
 
 extern void *sys_alloc(uint64_t size);
 

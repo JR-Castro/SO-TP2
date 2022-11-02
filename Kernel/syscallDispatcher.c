@@ -5,26 +5,27 @@
 #include "include/memManager.h"
 #include "include/pipe.h"
 
-static void sys_time(time_t * s);
-static void sys_copymem(uint64_t address, uint8_t * buffer, uint64_t length);
+static void sys_time(time_t *s);
 
-uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t rax, uint64_t * registers){
-    switch(rax){
+static void sys_copymem(uint64_t address, uint8_t *buffer, uint64_t length);
+
+uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t rax, uint64_t *registers) {
+    switch (rax) {
         case 0:
-            return readFd((int)rdi, (char*)rsi,rdx);
+            return readFd((int) rdi, (char *) rsi, rdx);
         case 1:
-            return writeFd((int)rdi, (char*)rsi, rdx);
+            return writeFd((int) rdi, (char *) rsi, rdx);
         case 2:
-            return (uint64_t) getRegisters((uint64_t *)rdi);
+            return (uint64_t) getRegisters((uint64_t *) rdi);
         case 3:
-            return createProcess((void (*)(int, char**))rdi, (int)rsi, (char**)rdx);
+            return createProcess((void (*)(int, char **)) rdi, (int) rsi, (char **) rdx);
         case 4:
             return waitPid(rdi);
         case 5:
-            sys_time((time_t*)rdi);
+            sys_time((time_t *) rdi);
             break;
         case 6:
-            sys_copymem(rdi,(uint8_t *) rsi, rdx);
+            sys_copymem(rdi, (uint8_t *) rsi, rdx);
             break;
         case 7:
             return getPid();
@@ -39,30 +40,30 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
         case 12:
             return nice(rdi, rsi);
         case 13:
-            printSchedulerInfo();
+            printSchedulerInfo((char *) rdi);
             break;
         case 14:
-            return (uint64_t) memAlloc((size_t)rdi);
+            return (uint64_t) memAlloc((size_t) rdi);
         case 15:
-            memFree((void *)rdi);
+            memFree((void *) rdi);
             break;
         case 16:
-            memoryInfo((struct memoryInfo*)rdi);
+            memoryInfo((struct memoryInfo *) rdi);
             break;
         case 17:
-            return (uint64_t)sem_open((char*)rdi, rsi, rdx);
+            return (uint64_t) sem_open((char *) rdi, rsi, rdx);
         case 18:
-            return sem_wait((char*)rdi);
+            return sem_wait((char *) rdi);
         case 19:
-            sem_post((char*)rdi);
+            sem_post((char *) rdi);
             break;
         case 20:
-            sem_close((char*)rdi);
+            sem_close((char *) rdi);
             break;
         case 21:
-            return createPipe((int*)rdi);
+            return createPipe((int *) rdi);
         case 22:
-            return processConnectNamedPipe((char*)rdi, rsi);
+            return processConnectNamedPipe((char *) rdi, rsi);
         case 23:
             return dup2(rdi, rsi);
         case 24:
@@ -79,7 +80,7 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
     return 0;
 }
 
-static void sys_time(time_t * s){
+static void sys_time(time_t *s) {
     s->day = localDay();
     s->month = localMonth();
     s->year = localYear();
@@ -88,6 +89,6 @@ static void sys_time(time_t * s){
     s->seconds = getSeconds();
 }
 
-static void sys_copymem(uint64_t address, uint8_t * buffer, uint64_t length){
-    memcpy((void*)buffer, (void*)address, length);
+static void sys_copymem(uint64_t address, uint8_t *buffer, uint64_t length) {
+    memcpy((void *) buffer, (void *) address, length);
 }

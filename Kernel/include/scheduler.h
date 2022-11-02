@@ -7,7 +7,7 @@
 #include "timerDriver.h"
 #include "defs.h"
 
-uint64_t createProcess(void (*f)(int, char**), int argc, char **argv);
+uint64_t createProcess(void (*f)(int, char **), int argc, char **argv);
 
 uint64_t schedule(uint64_t rsp);
 
@@ -29,7 +29,7 @@ extern void forceTimerTick();
 
 extern void syscallExit();
 
-void printSchedulerInfo();
+void printSchedulerInfo(char *s);
 
 uint64_t waitPid(uint64_t pid);
 

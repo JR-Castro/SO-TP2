@@ -1,13 +1,12 @@
 // This is a personal academic project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <naiveConsole.h>
+#include "include/naiveConsole.h"
 
 #define WIDTH 80
 #define HEIGHT 25
 #define VIDEOSTART 0xB8000
 #define WINDOWS 2
 
-static uint32_t uintToBase(uint64_t value, char *buffer, uint32_t base);
 // PVS warning about '0', but if i take it off it breaks
 static char buffer[64] = {'0'};
 // PVS note about constant to pointer, in this case, the video memory is always at this position
@@ -203,7 +202,7 @@ void ncClearWindow(uint8_t windowToCLear){
 	currentVideoW[windowToCLear]=videoWindow[windowToCLear];
 }
 
-static uint32_t uintToBase(uint64_t value, char *buffer, uint32_t base)
+uint32_t uintToBase(uint64_t value, char *buffer, uint32_t base)
 {
 	char *p = buffer;
 	char *p1, *p2;

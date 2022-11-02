@@ -259,7 +259,7 @@ static semNode_t *semListSearchById(uint64_t id) {
 static semNode_t *semListSearchByName(const char *name) {
     semNode_t *current = semList;
     while (current != NULL) {
-        if (strCmp(current->sem->name, name) == 0)
+        if (strcmp(current->sem->name, name) == 0)
             break;
         current = current->next;
     }

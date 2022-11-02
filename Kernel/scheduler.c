@@ -382,23 +382,31 @@ int killed(uint64_t pid) {
     return 0;
 }
 
-void printSchedulerInfo() {
+void printSchedulerInfo(char *s) {
+    char *ans, auxarray;
+    char buffer[64] = {'0'};
+    char title[] = "Name PID PPID Priority Stack BP\n";
+    s[0] = '\0';
+    strcat(s, title);
     pidNode_t *aux = processList.first;
-    ncNewline();
-    ncPrint("Name PID PPID Priority Stack BP\n");
     while (aux != NULL) {
-        ncPrint(aux->info.argv[0]);
-        ncPrintChar(' ');
-        ncPrintDec(aux->info.pid);
-        ncPrintChar(' ');
-        ncPrintDec(aux->info.ppid);
-        ncPrintChar(' ');
-        ncPrintDec(aux->info.priority);
-        ncPrintChar(' ');
-        ncPrintHex(aux->info.rsp);
-        ncPrintChar(' ');
-        ncPrintHex((uint64_t) aux->info.stackMem);
-        ncPrintChar('\n');
+        strcat(s, aux->info.argv[0]);
+        strcat(s, " ");
+        uintToBase(aux->info.pid, buffer, 10);
+        strcat(s, buffer);
+        strcat(s, " ");
+        uintToBase(aux->info.ppid, buffer, 10);
+        strcat(s, buffer);
+        strcat(s, " ");
+        uintToBase(aux->info.priority, buffer, 10);
+        strcat(s, buffer);
+        strcat(s, " ");
+        uintToBase(aux->info.rsp, buffer, 16);
+        strcat(s, buffer);
+        strcat(s, " ");
+        uintToBase((uint64_t)aux->info.stackMem, buffer, 16);
+        strcat(s, buffer);
+        strcat(s, "\n");
         aux = aux->next;
     }
 }

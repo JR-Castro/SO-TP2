@@ -18,6 +18,7 @@
 #include "cat.h"
 #include "filter.h"
 #include "philosophers.h"
+#include "ps.h"
 
 _Noreturn int shell();
 
