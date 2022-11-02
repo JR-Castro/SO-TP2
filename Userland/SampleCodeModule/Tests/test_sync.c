@@ -2,7 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "../include/test_sync.h"
 
-#define SEM_ID "sem"
+#define SEM_ID "synctestsem"
 #define TOTAL_PAIR_PROCESSES 2
 #define INCWAIT 10000
 
@@ -51,7 +51,6 @@ uint64_t my_process_inc(uint64_t argc, char *argv[]){   // {name, n, inc, use_se
 uint64_t test_sync(uint64_t argc, char *argv[]){ //{name, n, use_sem}
     uint64_t pids[2 * TOTAL_PAIR_PROCESSES];
     int8_t usesem;
-    sem_t *sem = NULL;
 
     if (argc < 3) return -1;
 
@@ -64,8 +63,8 @@ uint64_t test_sync(uint64_t argc, char *argv[]){ //{name, n, use_sem}
 
     uint64_t i;
     for(i = 0; i < TOTAL_PAIR_PROCESSES; i++){
-        pids[i] = sys_createProcess((void (*)(int, char **)) my_process_inc, 4, argvDec);
-        pids[i + TOTAL_PAIR_PROCESSES] = sys_createProcess((void (*)(int, char **)) my_process_inc, 4, argvInc);
+        pids[i] = sys_createProcess((int (*)(int, char **)) my_process_inc, 4, argvDec);
+        pids[i + TOTAL_PAIR_PROCESSES] = sys_createProcess((int (*)(int, char **)) my_process_inc, 4, argvInc);
     }
 
     for(i = 0; i < TOTAL_PAIR_PROCESSES; i++){

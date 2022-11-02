@@ -5,7 +5,7 @@
 
 #include "defs.h"
 
-char * strtok(char * str, const char * delim);
+char *strtok(char *str, const char *delim);
 
 int strcmp(const char *s1, const char *s2);
 

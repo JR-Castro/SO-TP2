@@ -19,7 +19,7 @@ void test_prio(){
     setEndlessLoopWait(MINOR_WAIT);
 
     for(i = 0; i < TOTAL_PROCESSES; i++)
-        pids[i] = sys_createProcess((void (*)(int, char **)) endless_loop_print, 1, argv);
+        pids[i] = sys_createProcess((int (*)(int, char **)) endless_loop_print, 1, argv);
 
     bussy_wait(WAIT);
     puts("\nCHANGING PRIORITIES...");

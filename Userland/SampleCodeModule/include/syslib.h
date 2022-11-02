@@ -39,7 +39,7 @@ extern uint64_t sys_write(uint64_t fd, const char *buffer, uint64_t count);
 
 extern uint64_t sys_getregs(uint64_t *registers);
 
-extern uint64_t sys_createProcess(void (*pFunction)(int, char **), int argc, char **argv);
+extern uint64_t sys_createProcess(int (*pFunction)(int, char **), int argc, char **argv);
 
 extern uint64_t sys_waitpid(uint64_t pid);
 

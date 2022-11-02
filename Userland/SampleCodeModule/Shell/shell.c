@@ -26,10 +26,10 @@ arg_t *args_parse(const char *name, int argc);
 cmd_t dsp_table[CMDS] = {
         {"help",         (int (*)(int, char **)) help,                0, "Show this help"},
         {"mem",          (int (*)(int, char **)) printmeminfo,        0, "Show memory status"},
-        {"ps",           (int (*)(int, char **)) ps,                  0, "Show processes"},
+        {"ps",           ps,                                          0, "Show processes"},
         {"loop",         (int (*)(int, char **)) loop,                0, "Start a loop process"},
         {"kill",         (int (*)(int, char **)) kill,                1, "Kill a process"},
-        {"nice",         (int (*)(int, char **)) sys_nice,            1, "Change priority of a process"},
+        {"nice",         nice,                                        2, "Change priority of a process"},
         {"block",        block,                                       1, "Block a process"},
         {"sem",          semsinfo,                                    0, "Show semaphore info"},
         {"cat",          cat,                                         0, "Print input to output"},
@@ -127,7 +127,7 @@ static void createWriterProcessWithPipe(int argc, char **argv) {
     while (i--) {
         cmd_t cur = dsp_table[i];
         if (strcmp(cur.name, argv[0]) == 0) {
-            pid[writer] = sys_createProcess((void (*)(int, char **)) cur.func, argc, argv);
+            pid[writer] = sys_createProcess(cur.func, argc, argv);
             break;
         }
     }
@@ -142,7 +142,7 @@ static void createReaderProcessWithPipe(int argc, char **argv) {
     while (i--) {
         cmd_t cur = dsp_table[i];
         if (strcmp(cur.name, argv[0]) == 0) {
-            pid[writer] = sys_createProcess((void (*)(int, char **)) cur.func, argc, argv);
+            pid[writer] = sys_createProcess(cur.func, argc, argv);
             break;
         }
     }
@@ -175,7 +175,7 @@ _Noreturn int shell() {
 
         char *next = strtok(NULL, delim);
         if (next == NULL) {
-            int pid = sys_createProcess((void (*)(int, char **)) f1, argc1, argv1);
+            int pid = sys_createProcess(f1, argc1, argv1);
             sys_waitpid(pid);
             putchar('\n');
             sys_free(cmd);
@@ -183,7 +183,7 @@ _Noreturn int shell() {
             continue;
         }
         if (*next == '&') {
-            sys_createProcess((void (*)(int, char **)) f1, argc1, argv1);
+            sys_createProcess(f1, argc1, argv1);
             putchar('\n');
             sys_free(cmd);
             freeArgs(argv1, argc1);
@@ -205,8 +205,8 @@ _Noreturn int shell() {
                 continue;
             }
             int aux1, aux2;
-            aux1 = sys_createProcess(createWriterProcessWithPipe, argc1, argv1);
-            aux2 = sys_createProcess(createReaderProcessWithPipe, argc2, argv2);
+            aux1 = sys_createProcess((int (*)(int, char **)) createWriterProcessWithPipe, argc1, argv1);
+            aux2 = sys_createProcess((int (*)(int, char **)) createReaderProcessWithPipe, argc2, argv2);
             sys_waitpid(aux1);
             sys_waitpid(aux2);
             sys_close_pipe(pipe[0]);

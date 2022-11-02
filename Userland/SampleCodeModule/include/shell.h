@@ -20,6 +20,7 @@
 #include "philosophers.h"
 #include "ps.h"
 #include "semsinfo.h"
+#include "nice.h"
 
 _Noreturn int shell();
 

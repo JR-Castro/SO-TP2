@@ -2,150 +2,161 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "../include/philosophers.h"
 
-#define ARRAYSIZE 100
+#define LENGTH 30
+#define MAXPHYLOS 20
 #define STARTPHILS 5
+#define PHYLOSEM "phylo_sem"
+#define PHYLOWAIT 100000000
 
-static int philoStatus[ARRAYSIZE];
-static uint64_t philoPid[ARRAYSIZE];
-static char *semaphores[ARRAYSIZE];
-static int lock = 0;
-static int philos = 0;
+typedef enum {
+    HUNGRY,
+    EATING,
+    THINKING,
+} phyloState;
 
+typedef struct {
+    uint64_t pid;
+    phyloState state;
+    char semname[LENGTH];
+} phylo_t;
 
-void printphilostatus() {
-    for (int i = 0; i < philos; ++i) {
-        if (philoStatus[i] == 0)
-            putchar('.');
-        else
-            putchar('E');
-    }
-    putchar('\n');
-}
+static phylo_t phylos[MAXPHYLOS];
+static int seated;
 
-// argv = { name, id, leftSem }
-_Noreturn static int philosopher(int argc, char **argv) {
-    int id = satoi(argv[1]);
-    char *left = argv[1];
+#define RIGHT(i) (((i)+1) % seated)
+#define LEFT(i) (((i)+seated-1) % seated)
 
-    acquire(&lock);
-    char *right = semaphores[(id+1) % philos];
-    release(&lock);
+static void getForks(int index);
+static void releaseForks(int index);
+static void removephilo();
+static void addphilo();
+static void printPhylos();
+static void test(int index);
+static void removephilo();
 
-    sys_sem_open(left, 0, 1);
-    sys_sem_open(right, 0, 1);
-
+// argv = { name, id }
+_Noreturn static void philosopher(int argc, char **argv) {
+    int index = satoi(argv[1]);
     while (1) {
-        if (id % 2 == 0) {
-            sys_sem_wait(right);
-            sys_sem_wait(left);
-        } else {
-            sys_sem_wait(left);
-            sys_sem_wait(right);
-        }
-
-        acquire(&lock);
-        philoStatus[id] = 1;
-        printphilostatus();
-        release(&lock);
-
-        bussy_wait(10000000);
-
-        acquire(&lock);
-        philoStatus[id] = 0;
-        printphilostatus();
-        release(&lock);
-
-        sys_sem_post(left);
-        sys_sem_post(right);
-
-        acquire(&lock);
-        if (strcmp(right, semaphores[(id+1)%philos]) != 0) {
-            sys_sem_close(right);
-            right = semaphores[(id+1)%philos];
-            sys_sem_open(right, 0, 1);
-        }
-        release(&lock);
+        // change for randomized values
+        getForks(index);
+        bussy_wait(PHYLOWAIT);
+        releaseForks(index);
+        bussy_wait(PHYLOWAIT);
     }
 }
 
-void addphilo() {
-    char *p_argv[3];
-    char buffer[30];
-    char left[30];
-
-    if (philos >= ARRAYSIZE)
-        return;
-
-    strcpy(left, "phylo");
-
-    itoa(philos, buffer);
-    strcat(left, buffer);
-
-    semaphores[philos] = sys_alloc(sizeof(char) * (strlen(left) + 1));
-    strcpy(semaphores[philos], left);
-
-    p_argv[0] = left;
-    p_argv[1] = buffer;
-    p_argv[2] = left;
-
-    philoStatus[philos] = 0;
-    philos = philos + 1;
-
-    if ((philoPid[philos - 1] = sys_createProcess((void (*)(int, char **)) philosopher, 3, p_argv)) == 0) {
-        fputs("Philosopher creation failed\n", STDERR);
-        philos = philos - 1;
-    }
-}
-
-void removephilo() {
-    if (philos <= 2) {
+static void addphilo() {
+    if (seated >= MAXPHYLOS) {
+        puts("No more space for philosophers");
         return;
     }
-    philos--;
-    sys_free(semaphores[philos]);
-    sys_kill(philoPid[philos]);
+    sys_sem_wait(PHYLOSEM);
+
+    char semname[LENGTH] = "phylo";
+    char buffer[10];
+    itoa(seated, buffer);
+    strcat(semname, buffer);
+    strcpy(phylos[seated].semname, semname);
+
+    phylos[seated].state = THINKING;
+
+    char argv1[LENGTH];
+    itoa(seated, argv1);
+    char *argv[] = {semname, argv1};
+
+    if (sys_sem_open(phylos[seated].semname, 0, 1) == NULL) {
+        fputs("Error opening semaphore\n", STDERR);
+        return;
+    }
+
+    if ((phylos[seated].pid = sys_createProcess((int (*)(int, char **)) philosopher, 2, argv)) == 0) {
+        fputs("Error creating process\n", STDERR);
+        return;
+    }
+    seated++;
+    sys_sem_post(PHYLOSEM);
 }
 
-static void safeexit();
+static void removephilo() {
+    if (seated == STARTPHILS)
+        return;
 
-void philosophers(int argc, char **argv) {
-    acquire(&lock);
+    sys_sem_wait(PHYLOSEM);
+    seated--;
+    sys_sem_close(phylos[seated].semname);
+    sys_kill(phylos[seated].pid);
+    sys_sem_post(PHYLOSEM);
+    return;
+}
 
+int philosophers(int argc, char **argv) {
+    if (sys_sem_open(PHYLOSEM, 0, 1) == 0) {
+        fputs("Error opening semaphore\n", STDERR);
+        return -1;
+    }
+    seated = 0;
     for (int i = 0; i < STARTPHILS; i++) {
-        addphilo();
+        addphilo(i);
     }
-    release(&lock);
 
     char c;
     while (1) {
         sys_read(STDIN, &c, 1);
-        if (c == 'a') {
-            acquire(&lock);
-            addphilo();
-            release(&lock);
-            continue;
-        }
-        if (c == 'r') {
-            acquire(&lock);
-            removephilo();
-            release(&lock);
-            continue;
-        }
-        if (c == 'e') {
-            goto finish;
+        switch (c) {
+            case 'a':
+                addphilo();
+                break;
+            case 'r':
+                removephilo();
+                break;
+            case 'q':
+                goto exit;
         }
     }
-    finish:
-    for (int i = 0; i < philos; ++i) {
-        removephilo();
+
+    exit:
+    sys_sem_wait(PHYLOSEM);
+    for (int i = 0; i < seated; ++i) {
+        sys_sem_close(phylos[i].semname);
+        sys_kill(phylos[i].pid);
     }
-    safeexit();
-    return;
+    sys_sem_close(PHYLOSEM);
+    return 0;
 }
 
-static void safeexit() {
-    for (int i = 0; i < philos; ++i) {
-        sys_kill(philoPid[i]);
-        sys_free(semaphores[i]);
+static void getForks(int index) {
+    sys_sem_wait(PHYLOSEM);
+    phylos[index].state = HUNGRY;
+    printPhylos();
+    test(index);
+    sys_sem_post(PHYLOSEM);
+    sys_sem_wait(phylos[index].semname);
+}
+
+static void test(int index) {
+    if (phylos[index].state == HUNGRY && phylos[LEFT(index)].state != EATING && phylos[RIGHT(index)].state != EATING){
+        phylos[index].state = EATING;
+        sys_sem_post(phylos[index].semname);
     }
 }
+
+static void releaseForks(int index) {
+    sys_sem_wait(PHYLOSEM);
+    phylos[index].state = THINKING;
+    test(LEFT(index));
+    test(RIGHT(index));
+    printPhylos();
+    sys_sem_post(PHYLOSEM);
+}
+
+static void printPhylos() {
+    for (int i = 0; i < seated; ++i) {
+        if (phylos[i].state == EATING)
+            putchar('E');
+        else
+            putchar('.');
+    }
+    putchar('\n');
+}
+
