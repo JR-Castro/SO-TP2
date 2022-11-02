@@ -3,7 +3,7 @@
 #include "../include/test_sync.h"
 
 #define SEM_ID "synctestsem"
-#define TOTAL_PAIR_PROCESSES 2
+#define TOTAL_PAIR_PROCESSES 5
 #define INCWAIT 10000
 
 int64_t global;  //shared memory
@@ -21,7 +21,7 @@ void slowInc(int64_t *p, int64_t inc){
 uint64_t my_process_inc(uint64_t argc, char *argv[]){   // {name, n, inc, use_sem}
     uint64_t n;
     int8_t inc;
-    int8_t use_sem;
+    int8_t use_sem = 0;
     sem_t *sem;
 
     if (argc < 4) return -1;
@@ -73,7 +73,7 @@ uint64_t test_sync(uint64_t argc, char *argv[]){ //{name, n, use_sem}
     }
 
     fputs("Final value: ", STDOUT);
-    char buffer[32] = {'0'};
+    char buffer[32];
     uintToBase(global, buffer, 10);
     puts(buffer);
 

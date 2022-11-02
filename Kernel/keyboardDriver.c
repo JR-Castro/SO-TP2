@@ -185,7 +185,8 @@ uint64_t readBuffer(char *output, uint64_t count) {
   
   for (; i < count; i++) {
     sem_wait(KEYBOARD_SEM);
-    output[i] = buffer[read++];
+    output[i] = buffer[read % BUFFER_LENGTH];
+    read++;
   }
 
   return i;

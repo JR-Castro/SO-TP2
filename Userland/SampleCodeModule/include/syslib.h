@@ -13,19 +13,7 @@ void excepInvalidOpcode();
 
 unsigned int charBelongs(char *s, char c);
 
-int containsString(const char *p1, const char *p2);
-
-void savePrintMemParams(char *s);
-
 void getTime();
-
-void printPrime();
-
-void fibonacciNumbs();
-
-void printmem();
-
-void inforeg();
 
 uint32_t uintToBase(uint64_t value, char *buffer, uint32_t base);
 

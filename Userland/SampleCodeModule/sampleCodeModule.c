@@ -2,10 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 /* sampleCodeModule.c */
 
-#include "include/bash.h"
 #include "include/shell.h"
-
-char * v = (char*)0xB8000 + 79 * 2;
 
 int main() {
     char * argv[] = {"Shell"};
