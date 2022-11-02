@@ -19,6 +19,7 @@
 #include "filter.h"
 #include "philosophers.h"
 #include "ps.h"
+#include "semsinfo.h"
 
 _Noreturn int shell();
 

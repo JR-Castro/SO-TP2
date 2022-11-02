@@ -25,6 +25,7 @@ GLOBAL sys_dup2
 GLOBAL sys_print_pipe_info
 GLOBAL sys_close_pipe
 GLOBAL sys_exit
+GLOBAL sys_get_sems
 
 GLOBAL inv_opcode
 GLOBAL div_zero
@@ -121,6 +122,9 @@ sys_close_pipe:
 
 sys_exit:
     syscallHandler 26
+
+sys_get_sems:
+    syscallHandler 27
 
 inv_opcode:
     ud2

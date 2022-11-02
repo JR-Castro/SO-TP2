@@ -74,6 +74,9 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
         case 26:
             exitProcess();
             break;
+        case 27:
+            getSemaphoresInfo((char *) rdi);
+            break;
         default:
             return -1;
     }

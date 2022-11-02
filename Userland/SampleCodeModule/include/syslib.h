@@ -97,6 +97,8 @@ extern uint64_t sys_close_pipe(uint64_t fd);
 
 extern void sys_exit();
 
+extern void sys_get_sems(char *s);
+
 extern void div_zero();
 
 extern void inv_opcode();

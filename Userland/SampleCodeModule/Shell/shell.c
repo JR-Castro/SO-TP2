@@ -22,7 +22,7 @@ void mem();
 
 arg_t *args_parse(const char *name, int argc);
 
-#define CMDS 16
+#define CMDS 17
 cmd_t dsp_table[CMDS] = {
         {"help",         (int (*)(int, char **)) help,                0, "Show this help"},
         {"mem",          (int (*)(int, char **)) printmeminfo,        0, "Show memory status"},
@@ -31,7 +31,7 @@ cmd_t dsp_table[CMDS] = {
         {"kill",         (int (*)(int, char **)) kill,                1, "Kill a process"},
         {"nice",         (int (*)(int, char **)) sys_nice,            1, "Change priority of a process"},
         {"block",        block,                                       1, "Block a process"},
-//        {"sem", , 0, "Show semaphore info"},
+        {"sem",          semsinfo,                                    0, "Show semaphore info"},
         {"cat",          cat,                                         0, "Print input to output"},
         {"wc",           (int (*)(int, char **)) wordcount,           0, "Count lines in input"},
         {"filter",       filter,                                      0, "Filter vocals from input"},
