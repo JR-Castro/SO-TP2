@@ -115,7 +115,7 @@ void ncPrintCharFormat(char character,uint8_t format){
 
 void ncPrint(const char *string)
 {
-	int i; 
+	int i;
 
 	for (i = 0; string[i] != 0; i++)
 		ncPrintChar(string[i]);
@@ -138,7 +138,7 @@ void ncNewline()
 		{
 			ncPrintChar(' ');
 		} while ((uint64_t)(currentVideoW[currentWindow] - video) % (width * 2) != ( currentWindow ? width : 0 ));
-		
+
 	}
 }
 
@@ -165,7 +165,7 @@ void ncPrintBase(uint64_t value, uint32_t base)
 
 void ncClear()
 {
-	
+
 	if (windows==1){
 		int i;
 
@@ -173,7 +173,7 @@ void ncClear()
 			video[i * 2] = ' ';
 			video[i*2+1] = defaultFormat;
 		}
-		
+
 		currentVideo = video;
 	} else {
 		ncClearWindow(currentWindow);
@@ -191,7 +191,7 @@ void ncClearWindow(uint8_t windowToCLear){
 		widthW=width;
 		i=width/2 ;
 	}
-		
+
 	while(i < height*width){
 		video[i*2]=' ';
 		video[i*2+1] = defaultFormat;
@@ -237,13 +237,8 @@ uint32_t uintToBase(uint64_t value, char *buffer, uint32_t base)
 void scrollUp(){
 	// Scroll all
 	if (windows == 1){
-		uint64_t i;
-		for (i = 0; i <= width * (height-1); i++)
-		{
-			video[i*2] = video[(i+width)*2];
-			video[i*2+1] = video[(i+width)*2+1];	// Copy format too.
-		}
-		for (uint64_t j = i; j < width * height; j++)
+        memcpy(video, video + width * 2, width * (height - 1) * 2);
+		for (uint64_t j = width * (height-1); j < width * height; j++)
 		{
 			video[j*2] = ' ';
 			video[j*2+1] = defaultFormat;
@@ -260,7 +255,7 @@ void scrollUp(){
 			widthW=width;
 			i=width/2 ;
 		}
-			
+
 		while(i < (HEIGHT-1)*WIDTH){
 			video[i*2]=video[(i+WIDTH)*2];
 			video[i*2+1]=video[(i+WIDTH)*2+1];	// Copy format
