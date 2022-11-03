@@ -937,7 +937,7 @@ static unsigned int buddy_is_free(struct buddy *buddy, size_t from) {
 
     struct buddy_tree *t = buddy_tree(buddy);
 
-    struct buddy_tree_interval query_range = {0};
+    struct buddy_tree_interval query_range = {{0}};
     query_range.from = deepest_position_for_offset(buddy, from);
     query_range.to = deepest_position_for_offset(buddy, to);
 
@@ -1294,7 +1294,7 @@ static size_t read_from_internal_position(unsigned char *bitset, struct internal
 }
 
 static struct buddy_tree_interval buddy_tree_interval(struct buddy_tree *t, struct buddy_tree_pos pos) {
-    struct buddy_tree_interval result = {0};
+    struct buddy_tree_interval result = {{0}};
     result.from = pos;
     result.to = pos;
     size_t depth = pos.depth;
@@ -1315,7 +1315,7 @@ static unsigned int buddy_tree_interval_contains(struct buddy_tree_interval oute
 }
 
 static struct buddy_tree_walk_state buddy_tree_walk_state_root() {
-    struct buddy_tree_walk_state state = {0};
+    struct buddy_tree_walk_state state = {{0}};
     state.starting_pos = buddy_tree_root();
     state.current_pos = buddy_tree_root();
     return state;

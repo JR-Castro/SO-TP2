@@ -383,7 +383,6 @@ int killed(uint64_t pid) {
 }
 
 void printSchedulerInfo(char *s) {
-    char *ans, auxarray;
     char buffer[64] = {'0'};
     char title[] = "Name PID PPID Priority Stack BP\n";
     s[0] = '\0';
