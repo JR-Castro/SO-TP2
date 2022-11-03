@@ -5,7 +5,7 @@
 int filter(int argc, char ** argv) {
     int c = getchar();
     while (c != EOF) {
-        if (!charBelongs("aeiou", c)) {
+        if (!charBelongs("aeiouAEIOU", c)) {
             putchar(c);
         }
         c = getchar();
