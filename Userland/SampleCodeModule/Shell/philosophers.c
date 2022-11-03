@@ -4,7 +4,7 @@
 
 #define LENGTH 30
 #define MAXPHYLOS 20
-#define STARTPHILS 5
+#define STARTPHILS 2
 #define PHYLOSEM "phylo_sem"
 #define PHYLOWAIT 100000000
 
@@ -40,9 +40,9 @@ _Noreturn static void philosopher(int argc, char **argv) {
     while (1) {
         // change for randomized values
         getForks(index);
-        bussy_wait(PHYLOWAIT);
+        bussy_wait(GetUniform(PHYLOWAIT));
         releaseForks(index);
-        bussy_wait(PHYLOWAIT);
+        bussy_wait(GetUniform(PHYLOWAIT));
     }
 }
 
