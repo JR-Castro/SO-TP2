@@ -31,7 +31,7 @@ uint64_t my_process_inc(uint64_t argc, char *argv[]){   // {name, n, inc, use_se
     if ((use_sem = satoi(argv[3])) < 0) return -1;
 
     if (use_sem)
-        if (!(sem = sys_sem_open(SEM_ID,3, 1))){
+        if (!(sem = sys_sem_open(SEM_ID, 1))){
             puts("test_sync: ERROR opening semaphore");
             return -1;
         }

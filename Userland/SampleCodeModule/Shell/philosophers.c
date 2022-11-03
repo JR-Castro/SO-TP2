@@ -65,7 +65,7 @@ static void addphilo() {
     itoa(seated, argv1);
     char *argv[] = {semname, argv1};
 
-    if (sys_sem_open(phylos[seated].semname, 0, 1) == NULL) {
+    if (sys_sem_open(phylos[seated].semname, 1) == NULL) {
         fputs("Error opening semaphore\n", STDERR);
         return;
     }
@@ -91,7 +91,7 @@ static void removephilo() {
 }
 
 int philosophers(int argc, char **argv) {
-    if (sys_sem_open(PHYLOSEM, 0, 1) == 0) {
+    if (sys_sem_open(PHYLOSEM, 1) == 0) {
         fputs("Error opening semaphore\n", STDERR);
         return -1;
     }

@@ -25,8 +25,6 @@ static int semListAdd(sem_t *sem);
 
 static int semListDelete(sem_t *sem);
 
-static semNode_t *semListSearchById(uint64_t id);
-
 static semNode_t *semListSearchByName(const char *name);
 
 static void semNodeFree(semNode_t *node);
@@ -34,20 +32,9 @@ static void semNodeFree(semNode_t *node);
 
 // Functions for managing semaphores
 
-void *sem_open(const char *name, uint64_t id, uint64_t startValue) {
+void *sem_open(const char *name, uint64_t startValue) {
     semNode_t *node = NULL;
     acquire(&semListLock);
-    if (id <= STARTID || id > idCounter) {
-        node = semListSearchById(id);
-    }
-    if (node != NULL) {
-        if (uint64ListAddNode(&(node->sem->usingList), getPid())) {
-            release(&(semListLock));
-            return NULL;
-        }
-        release(&semListLock);
-        return node;
-    }
 
     node = semListSearchByName(name);
     if (node != NULL) {
@@ -150,7 +137,7 @@ static void freeSemaphore(sem_t *sem) {
     memFree(sem);
 }
 
-/* Creates semaphore and setups all necessary auxiliar structures
+/* Creates semaphore and setups all necessary auxiliary structures
  * Returns: pointer to semaphore if successful
  *          NULL, if memory allocation failed
  */
@@ -211,7 +198,7 @@ static int semListAdd(sem_t *sem) {
 }
 
 /* Deletes sem from list of semaphores
- * Returns: 0 if sucessfully deleted
+ * Returns: 0 if successfully deleted
  *          1 if sem didn't exist
  */
 static int semListDelete(sem_t *sem) {
@@ -236,20 +223,6 @@ static int semListDelete(sem_t *sem) {
 static void semNodeFree(semNode_t *node) {
     freeSemaphore(node->sem);
     memFree(node);
-}
-
-/* Searches semList for node with same id
- * Returns: pointer to node if found
- *          NULL otherwise
- */
-static semNode_t *semListSearchById(uint64_t id) {
-    semNode_t *current = semList;
-    while (current != NULL) {
-        if (current->sem->id == id)
-            break;
-        current = current->next;
-    }
-    return current;
 }
 
 /* Searches semList for node with matching name (case-sensitive)

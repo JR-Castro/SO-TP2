@@ -104,7 +104,7 @@ static uint8_t pressed(uint16_t scancode, uint16_t key);
 
 void initKeyboard() {
   
-  while ((keySem = sem_open(KEYBOARD_SEM, 0, 0)) == NULL);
+  while ((keySem = sem_open(KEYBOARD_SEM, 0)) == NULL);
 
 }
 

@@ -60,7 +60,7 @@ extern void sys_memInfo(struct memoryInfo *info);
  * Returns:     Pointer to semaphore if found or successfully created
  *              NULL if memory allocation failed somewhere
  */
-extern sem_t *sys_sem_open(char *sem_name, uint64_t id, uint64_t initialValue);
+extern sem_t *sys_sem_open(char *sem_name, uint64_t initialValue);
 
 /* Waits until semaphore is posted.
  * Returns:     0 if wait was successful

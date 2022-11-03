@@ -20,7 +20,7 @@ typedef struct sem {
  * Returns:     Pointer to semaphore if found or successfully created
  *              NULL if memory allocation failed somewhere
  */
-void *sem_open(const char *name, uint64_t id, uint64_t startValue);
+void *sem_open(const char *name, uint64_t startValue);
 
 /* Waits until semaphore is posted.
  * Returns:     0 if wait was successful
