@@ -33,3 +33,20 @@ void memFree(void *ap) {
     dumbManagerFree(ap);
     #endif
 }
+
+static void *walkFunction(void *ctx, void *addr, size_t slot_size) {
+    size_t *occupied = (size_t *) ctx;
+    *occupied += slot_size;
+    return NULL;
+}
+
+void memoryInfo(struct memoryInfo *info) {
+    #ifdef BUDDY
+    info->occupied = 0;
+    info->totalSize = buddy_arena_size(buddy);
+    buddy_walk(buddy, walkFunction, &(info->occupied));
+    info->free = info->totalSize - info->occupied;
+    #else
+    dumbMemoryInfo(info);
+    #endif
+}

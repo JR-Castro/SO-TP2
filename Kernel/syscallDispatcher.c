@@ -47,9 +47,9 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
         case 15:
             memFree((void *) rdi);
             break;
-//        case 16:
-//            memoryInfo((struct memoryInfo *) rdi);
-//            break;
+        case 16:
+            memoryInfo((struct memoryInfo *) rdi);
+            break;
         case 17:
             return (uint64_t) sem_open((char *) rdi, rsi);
         case 18:

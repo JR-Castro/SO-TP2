@@ -10,12 +10,6 @@
 #include <stdlib.h>
 #include "lib.h"
 
-struct memoryInfo {
-    size_t free;
-    size_t occupied;
-    size_t totalSize;
-};
-
 void *dumbManagerAlloc(size_t nbytes);
 
 void dumbManagerFree(void *ap);

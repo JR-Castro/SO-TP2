@@ -5,10 +5,18 @@
 
 #include "lib.h"
 
+struct memoryInfo {
+    size_t free;
+    size_t occupied;
+    size_t totalSize;
+};
+
 void initializeMemoryManager(void *start, uint64_t size);
 
 void *memAlloc(size_t nbytes);
 
 void memFree(void *ap);
+
+void memoryInfo(struct memoryInfo *info);
 
 #endif //SO_TP2_MEMMANAGERADT_H
