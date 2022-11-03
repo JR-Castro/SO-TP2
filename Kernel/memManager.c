@@ -6,7 +6,7 @@
 #include "include/memManager.h"
 
 /*
- * This memory manager is based on the one written on "C Programming Language" page 163
+ * This memory manager is based on the one written on "The C Programming Language" page 163
  */
 
 #define BLOCK 512
@@ -33,7 +33,7 @@ static int isInBlockArray(Header *block);
 
 static void deleteFromBlockArray(Header *block);
 
-void *memAlloc(size_t nbytes) {
+void *dumbManagerAlloc(size_t nbytes) {
     if (nbytes > memInfo.free)
         return NULL;
 
@@ -66,7 +66,7 @@ void *memAlloc(size_t nbytes) {
     }
 }
 
-void memFree(void *ap) {
+void dumbManagerFree(void *ap) {
     Header *freedBlock, *p;
     freedBlock = (Header *) ap - 1;               // Points to block header
     if (!isInBlockArray(freedBlock)) {
@@ -95,28 +95,28 @@ void memFree(void *ap) {
     freep = p;
 }
 
-void createMemoryManager(void *managedMemory, size_t size) {
+void dumbCreateMemoryManager(void *managedMemory, size_t size) {
     memInfo.totalSize = memInfo.free = size;
     freep = managedMemory;
     freep->s.ptr = managedMemory;
     freep->s.size = size / sizeof(Header);
-    blocks = memAlloc(sizeof(Header*) * BLOCK);
+    blocks = dumbManagerAlloc(sizeof(Header*) * BLOCK);
     size = BLOCK;
 }
 
-void memoryInfo(struct memoryInfo *info) {
+void dumbMemoryInfo(struct memoryInfo *info) {
     info->free = memInfo.free;
     info->totalSize = memInfo.totalSize;
     info->occupied = memInfo.totalSize - memInfo.free;
 }
 
 static void growBlockArray() {
-    Header **new = memAlloc(sizeof(Header**) * (size + BLOCK));
+    Header **new = dumbManagerAlloc(sizeof(Header**) * (size + BLOCK));
     memcpy(new, blocks, size);
     Header **old = blocks;
     blocks = new;
     size += BLOCK;
-    memFree(old);
+    dumbManagerFree(old);
 }
 
 static int isInBlockArray(Header *block) {

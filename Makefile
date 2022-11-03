@@ -2,7 +2,7 @@
 all:  bootloader kernel userland image
 
 gdb: bootloader
-	cd Kernel; make gdb
+	cd Kernel; make MM=$(MM) gdb
 	cd Userland; make gdb
 	cd Image; make all
 

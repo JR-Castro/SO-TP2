@@ -3,7 +3,7 @@
 #ifndef SEMAPHORES_H
 #define SEMAPHORES_H
 
-#include "memManager.h"
+#include "memManagerADT.h"
 #include "lib.h"
 #include "scheduler.h"
 #include "uint64ListADT.h"

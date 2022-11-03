@@ -5,7 +5,7 @@
 #include "include/moduleLoader.h"
 #include "include/naiveConsole.h"
 #include "include/idtLoader.h"
-#include "include/memManager.h"
+#include "include/memManagerADT.h"
 #include "include/scheduler.h"
 #include "include/keyboardDriver.h"
 
@@ -55,8 +55,7 @@ void *initializeKernelBinary() {
 
 int main() {
     ncClear();
-
-    createMemoryManager(MEMORY_START, MEMORY_SIZE);
+    initializeMemoryManager(MEMORY_START, MEMORY_SIZE);
     initializeScheduler();
     initKeyboard();
     load_idt();
