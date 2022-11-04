@@ -221,7 +221,7 @@ uint32_t uintToBase(uint64_t value, char *buffer, uint32_t base) {
 void scrollUp() {
     // Scroll all
     if (windows == 1) {
-        memcpy(video, video + width * 2, width * (height - 1) * 2);
+        memmove(video, video + width * 2, width * (height - 1) * 2);
         for (uint64_t j = width * (height - 1); j < width * height; j++) {
             video[j * 2] = ' ';
             video[j * 2 + 1] = defaultFormat;
