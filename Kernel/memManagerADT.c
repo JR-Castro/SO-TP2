@@ -34,11 +34,13 @@ void memFree(void *ap) {
     #endif
 }
 
+#ifdef BUDDY
 static void *walkFunction(void *ctx, void *addr, size_t slot_size) {
     size_t *occupied = (size_t *) ctx;
     *occupied += slot_size;
     return NULL;
 }
+#endif
 
 void memoryInfo(struct memoryInfo *info) {
     #ifdef BUDDY

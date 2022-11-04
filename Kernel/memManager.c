@@ -23,11 +23,11 @@ typedef union header Header;
 //static Header base;
 static Header *freep = NULL;
 static Header **blocks = NULL;
-uint64_t size = 0;
+uint64_t blockArraySize = 0;
 uint64_t occupied = 0;
 struct memoryInfo memInfo;
 
-static void growBlockArray();
+static int growBlockArray();
 
 static int isInBlockArray(Header *block);
 
@@ -39,6 +39,7 @@ void *dumbManagerAlloc(size_t nbytes) {
 
     Header *p, *prevp;
     size_t nunits;
+    uint8_t exactsize = 0;
 
     nunits = (nbytes + sizeof(Header) - 1) / sizeof(Header) + 1;
     prevp = freep;
@@ -47,13 +48,22 @@ void *dumbManagerAlloc(size_t nbytes) {
         if (p->s.size >= nunits) {      // big enough
             if (p->s.size == nunits) {    // exactly
                 prevp->s.ptr = p->s.ptr;
+                exactsize = 1;
             } else {                      // allocate tail end
                 p->s.size -= nunits;
                 p += p->s.size;
                 p->s.size = nunits;
             }
-            if (occupied == size - 2) {
-                growBlockArray();
+            if (occupied == blockArraySize - 2) {
+                if (growBlockArray()) {
+                    /*  If we can't grow the array, we can't allocate memory
+                     *  So we undo the previous operations*/
+                    if (exactsize)
+                        prevp->s.ptr = p;
+                    else
+                        prevp->s.ptr->s.size += nunits;
+                    return NULL;
+                }
             }
             blocks[occupied++] = p;
             memInfo.free -= nunits * sizeof(Header);
@@ -100,8 +110,8 @@ void dumbCreateMemoryManager(void *managedMemory, size_t size) {
     freep = managedMemory;
     freep->s.ptr = managedMemory;
     freep->s.size = size / sizeof(Header);
-    blocks = dumbManagerAlloc(sizeof(Header*) * BLOCK);
-    size = BLOCK;
+    blocks = dumbManagerAlloc(sizeof(Header *) * BLOCK);
+    blockArraySize = BLOCK;
 }
 
 void dumbMemoryInfo(struct memoryInfo *info) {
@@ -110,13 +120,17 @@ void dumbMemoryInfo(struct memoryInfo *info) {
     info->occupied = memInfo.totalSize - memInfo.free;
 }
 
-static void growBlockArray() {
-    Header **new = dumbManagerAlloc(sizeof(Header**) * (size + BLOCK));
-    memcpy(new, blocks, size);
+static int growBlockArray() {
+    Header **new = dumbManagerAlloc(sizeof(Header **) * (blockArraySize + BLOCK));
+    if (new == NULL) {
+        return -1;
+    }
+    memcpy(new, blocks, blockArraySize);
     Header **old = blocks;
     blocks = new;
-    size += BLOCK;
+    blockArraySize += BLOCK;
     dumbManagerFree(old);
+    return 0;
 }
 
 static int isInBlockArray(Header *block) {

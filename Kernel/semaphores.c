@@ -239,36 +239,71 @@ static semNode_t *semListSearchByName(const char *name) {
     return current;
 }
 
-void getSemaphoresInfo(char *s) {
+char *getSemaphoresInfo() {
     acquire(&semListLock);
     semNode_t *aux = semList;
     char title[] = "Name Id Value Waiting\n";
-    char buffer[64] = {'0'};
-    s[0] = '\0';
-    strcat(s, title);
+    char buffer[64];
+    char *ans = NULL;
+    int length = 0, size = 0;
+
+    length = copyResizeableString(&ans, title, &size, length);
+    if (length == -1) {
+        release(&semListLock);
+        return NULL;
+    }
+
     while (aux != NULL) {
-        strcat(s, aux->sem->name);
-        strcat(s, " ");
+        length = copyResizeableString(&ans, aux->sem->name, &size, length);
+        if (length == -1)
+            goto bad;
+        length = copyResizeableString(&ans, " ", &size, length);
+        if (length == -1)
+            goto bad;
+
         uintToBase(aux->sem->id, buffer, 10);
-        strcat(s, buffer);
-        strcat(s, " ");
+        length = copyResizeableString(&ans, buffer, &size, length);
+        if (length == -1)
+            goto bad;
+        length = copyResizeableString(&ans, " ", &size, length);
+        if (length == -1)
+            goto bad;
+
         uintToBase(aux->sem->value, buffer, 10);
-        strcat(s, buffer);
-        strcat(s, " ");
+        length = copyResizeableString(&ans, buffer, &size, length);
+        if (length == -1)
+            goto bad;
+        length = copyResizeableString(&ans, " ", &size, length);
+        if (length == -1)
+            goto bad;
+
         uintToBase(aux->sem->waiting, buffer, 10);
-        strcat(s, buffer);
-        strcat(s, "\n");
+        length = copyResizeableString(&ans, buffer, &size, length);
+        if (length == -1)
+            goto bad;
+
+        length = copyResizeableString(&ans, "\n", &size, length);
+        if (length == -1)
+            goto bad;
         aux = aux->next;
     }
+
     release(&semListLock);
+    finishResizeableString(&ans, length);
+    return ans;
+
+    bad:
+    release(&semListLock);
+    memFree(ans);
+    return NULL;
 }
 
 // Functions for managing locks
 
-void acquire(int *lock){
+void acquire(int *lock) {
     while (_xchg(lock, 1) != 0);
 }
 
-void release(int *lock){
+void release(int *lock) {
     _xchg(lock, 0);
 }

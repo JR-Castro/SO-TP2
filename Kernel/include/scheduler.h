@@ -29,7 +29,7 @@ extern void forceTimerTick();
 
 extern void syscallExit();
 
-void printSchedulerInfo(char *s);
+char *printSchedulerInfo();
 
 uint64_t waitPid(uint64_t pid);
 

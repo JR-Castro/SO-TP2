@@ -127,3 +127,52 @@ char *strncat(char *dest, const char *src, size_t n) {
     *dest = '\0';
     return ret;
 }
+
+#define STRINGBLOCK 100
+
+/*  Grows a resizeable string   */
+static int growString(char **str, int *size) {
+    char *new = memAlloc(*size + STRINGBLOCK);
+    if (!new) {
+        return -1;
+    }
+    memcpy(new, *str, *size);
+    memFree(*str);
+    *str = new;
+    return 0;
+}
+
+/*  Appends a string to a resizeable string, returns index of end of string   */
+int copyResizeableString(char **s, const char* src, int *size, int start) {
+    if (s == NULL)
+        return -1;
+    if (*s == NULL) {
+        *s = memAlloc(STRINGBLOCK);
+        if (!*s)
+            return -1;
+        *size = STRINGBLOCK;
+    }
+    int i = start;
+    for (int j = 0; src[j]; ++i, ++j) {
+        if (i >= *size - 1) {
+            if (growString(s, size))
+                return i;
+        }
+        (*s)[i] = src[j];
+    }
+    (*s)[i] = '\0';
+    return i;
+}
+
+int finishResizeableString(char **s, int finish) {
+    char *new = memAlloc(finish);
+    if (!new) {
+        return -1;
+    }
+    memcpy(new, *s, finish + 1);
+    memFree(*s);
+    *s = new;
+    return 0;
+}
+
+#undef STRINGBLOCK

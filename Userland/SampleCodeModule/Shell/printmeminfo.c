@@ -6,7 +6,7 @@ void printmeminfo() {
     struct memoryInfo info;
     sys_memInfo(&info);
     fputs("Total memory: ", STDOUT);
-    char buffer[32] = {'0'};
+    char buffer[64];
     itoa(info.totalSize, buffer);
     puts(buffer);
 
