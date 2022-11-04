@@ -5,6 +5,7 @@
 #ifndef _defs_
 #define _defs_
 
+#undef NULL
 #define NULL ((void*)0)
 
 /* Flags para derechos de acceso de los segmentos */

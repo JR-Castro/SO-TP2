@@ -382,32 +382,76 @@ int killed(uint64_t pid) {
     return 0;
 }
 
-void printSchedulerInfo(char *s) {
+char *printSchedulerInfo() {
     char buffer[64] = {'0'};
     char title[] = "Name PID PPID Priority Stack BP\n";
-    s[0] = '\0';
-    strcat(s, title);
+    char *ans = NULL;
+    int size = 0, len = 0;
+    len = copyResizeableString(&ans, title, &size, len);
+    if (len == -1)
+        return NULL;
     pidNode_t *aux = processList.first;
     while (aux != NULL) {
-        strcat(s, aux->info.argv[0]);
-        strcat(s, " ");
+        len = copyResizeableString(&ans, aux->info.argv[0], &size, len);
+        if (len == -1)
+            goto bad;
+        len = copyResizeableString(&ans, " ", &size, len);
+        if (len == -1)
+            goto bad;
         uintToBase(aux->info.pid, buffer, 10);
-        strcat(s, buffer);
-        strcat(s, " ");
+
+        len = copyResizeableString(&ans, buffer, &size, len);
+        if (len == -1)
+            goto bad;
+        len = copyResizeableString(&ans, " ", &size, len);
+        if (len == -1)
+            goto bad;
+
         uintToBase(aux->info.ppid, buffer, 10);
-        strcat(s, buffer);
-        strcat(s, " ");
+
+        len = copyResizeableString(&ans, buffer, &size, len);
+        if (len == -1)
+            goto bad;
+        len = copyResizeableString(&ans, " ", &size, len);
+        if (len == -1)
+            goto bad;
+
         uintToBase(aux->info.priority, buffer, 10);
-        strcat(s, buffer);
-        strcat(s, " ");
+
+        len = copyResizeableString(&ans, buffer, &size, len);
+        if (len == -1)
+            goto bad;
+        len = copyResizeableString(&ans, " ", &size, len);
+        if (len == -1)
+            goto bad;
+
         uintToBase(aux->info.rsp, buffer, 16);
-        strcat(s, buffer);
-        strcat(s, " ");
+
+        len = copyResizeableString(&ans, buffer, &size, len);
+        if (len == -1)
+            goto bad;
+        len = copyResizeableString(&ans, " ", &size, len);
+        if (len == -1)
+            goto bad;
+
         uintToBase((uint64_t)aux->info.stackMem, buffer, 16);
-        strcat(s, buffer);
-        strcat(s, "\n");
+
+        len = copyResizeableString(&ans, buffer, &size, len);
+        if (len == -1)
+            goto bad;
+        len = copyResizeableString(&ans, "\n", &size, len);
+        if (len == -1)
+            goto bad;
+
         aux = aux->next;
     }
+//    In case of fail, original array isn't modified and still works
+    finishResizeableString(&ans, len);
+    return ans;
+
+    bad:
+    memFree(ans);
+    return NULL;
 }
 
 int createPipe(int fd[2]) {

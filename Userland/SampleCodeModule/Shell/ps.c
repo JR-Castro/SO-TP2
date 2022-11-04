@@ -3,13 +3,12 @@
 #include "../include/ps.h"
 
 int ps(int argc, char **argv) {
-    char *auxmem = sys_alloc(4096);
-    if (auxmem == NULL) {
-        fputs("Error: No memory available.\n", STDERR);
+    char *s = sys_printSchedulerInfo();
+    if (s == NULL) {
+        fputs("Error with memory allocation\n", STDERR);
         return -1;
     }
-    sys_printSchedulerInfo(auxmem);
-    puts(auxmem);
-    sys_free(auxmem);
+    puts(s);
+    sys_free(s);
     return 0;
 }

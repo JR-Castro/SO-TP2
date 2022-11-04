@@ -3,13 +3,12 @@
 #include "../include/semsinfo.h"
 
 int semsinfo(int argc, char **argv) {
-    char *auxmem = sys_alloc(4096);
-    if (auxmem == NULL) {
-        fputs("Error: No memory available.\n", STDERR);
+    char *ans = sys_get_sems();
+    if (ans == NULL) {
+        fputs("Error getting semaphores info\n", STDERR);
         return -1;
     }
-    sys_get_sems(auxmem);
-    puts(auxmem);
-    sys_free(auxmem);
+    puts(ans);
+    sys_free(ans);
     return 0;
 }
