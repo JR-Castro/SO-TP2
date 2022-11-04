@@ -4,7 +4,7 @@
 
 void getTime(){
     time_t time;
-    char buffer[64] = {'0'};
+    char buffer[64];
     sys_time(&time);
 
     putchar('\n');

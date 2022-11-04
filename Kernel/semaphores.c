@@ -243,7 +243,7 @@ char *getSemaphoresInfo() {
     acquire(&semListLock);
     semNode_t *aux = semList;
     char title[] = "Name Id Value Waiting\n";
-    char buffer[64] = {'0'};
+    char buffer[64];
     char *ans = NULL;
     int length = 0, size = 0;
 
