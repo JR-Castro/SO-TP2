@@ -1249,7 +1249,7 @@ static inline size_t buddy_tree_index_internal(struct buddy_tree_pos pos) {
     /* % ((sizeof(size_t) * CHAR_BIT)-1) ensures we don't shift into
      * undefined behavior and stops clang from barking :)
      * Hopefully clang also optimizes it away :) */
-    size_t mask = 1u << (pos.depth - 1) % ((sizeof(size_t) * CHAR_BIT)-1);
+    size_t mask = 1u << ((pos.depth - 1) % ((sizeof(size_t) * CHAR_BIT)-1));
     size_t result = pos.index & ~mask;
     return result;
 }
@@ -1317,7 +1317,7 @@ static unsigned int buddy_tree_interval_contains(struct buddy_tree_interval oute
 static struct buddy_tree_walk_state buddy_tree_walk_state_root() {
     struct buddy_tree_walk_state state = {{0}};
     state.starting_pos = buddy_tree_root();
-    state.current_pos = buddy_tree_root();
+    state.current_pos = state.starting_pos;
     return state;
 }
 
