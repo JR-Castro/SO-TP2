@@ -13,6 +13,21 @@ void * memset(void * destination, int32_t c, uint64_t length)
 	return destination;
 }
 
+void *memmove(void *str1, const void *str2, size_t n) {
+    char *dest = (char *) str1;
+    const char *src = (const char *) str2;
+    if (dest < src) {
+        for (size_t i = 0; i < n; i++) {
+            dest[i] = src[i];
+        }
+    } else {
+        for (size_t i = n; i != 0; i--) {
+            dest[i - 1] = src[i - 1];
+        }
+    }
+    return str1;
+}
+
 void * memcpy(void * destination, const void * source, uint64_t length)
 {
 	/*

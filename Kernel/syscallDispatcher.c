@@ -2,7 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "include/syscallDispatcher.h"
 #include "include/scheduler.h"
-#include "include/memManager.h"
+#include "include/memManagerADT.h"
 #include "include/pipe.h"
 
 static void sys_time(time_t *s);

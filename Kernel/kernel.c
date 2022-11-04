@@ -5,7 +5,7 @@
 #include "include/moduleLoader.h"
 #include "include/naiveConsole.h"
 #include "include/idtLoader.h"
-#include "include/memManager.h"
+#include "include/memManagerADT.h"
 #include "include/scheduler.h"
 #include "include/keyboardDriver.h"
 
@@ -22,52 +22,48 @@ extern uint8_t endOfKernel;
 static const uint64_t PageSize = 0x1000;
 
 // PVS note about constant to pointer
-static void * const sampleCodeModuleAddress = (void*)0x400000;
-static void * const sampleDataModuleAddress = (void*)0x500000;
+static void *const sampleCodeModuleAddress = (void *) 0x400000;
+static void *const sampleDataModuleAddress = (void *) 0x500000;
 
 typedef int (*EntryPoint)();
 
 
-void clearBSS(void * bssAddress, uint64_t bssSize)
-{
-	memset(bssAddress, 0, bssSize);
+void clearBSS(void *bssAddress, uint64_t bssSize) {
+    memset(bssAddress, 0, bssSize);
 }
 
-void * getStackBase()
-{
-	return (void*)(
-		(uint64_t)&endOfKernel
-		+ PageSize * 8				//The size of the stack itself, 32KiB
-		- sizeof(uint64_t)			//Begin at the top of the stack
-	);
+void *getStackBase() {
+    return (void *) (
+            (uint64_t) & endOfKernel
+                         + PageSize * 8                //The size of the stack itself, 32KiB
+                         - sizeof(uint64_t)            //Begin at the top of the stack
+    );
 }
 
-void * initializeKernelBinary()
-{
-	void * moduleAddresses[] = {
-		sampleCodeModuleAddress,
-		sampleDataModuleAddress
-	};
+void *initializeKernelBinary() {
+    void *moduleAddresses[] = {
+            sampleCodeModuleAddress,
+            sampleDataModuleAddress
+    };
 
-	loadModules(&endOfKernelBinary, moduleAddresses);
+    loadModules(&endOfKernelBinary, moduleAddresses);
 
-	clearBSS(&bss, &endOfKernel - &bss);
+    clearBSS(&bss, &endOfKernel - &bss);
 
-	return getStackBase();
+    return getStackBase();
 }
 
-int main()
-{	
-  	ncClear();
-    createMemoryManager(MEMORY_START, MEMORY_SIZE);
+int main() {
+    ncClear();
+    initializeMemoryManager(MEMORY_START, MEMORY_SIZE);
     initializeScheduler();
     initKeyboard();
-  	load_idt();
-    ((EntryPoint)sampleCodeModuleAddress)();
+    load_idt();
+    ((EntryPoint) sampleCodeModuleAddress)();
     _sti();
     while (1)
         _hlt();
 //	loadUserland(sampleCodeModuleAddress, (uint64_t*) 0x900000);
-	ncPrint("[Finished]");
-	return 0;
+    ncPrint("[Finished]");
+    return 0;
 }

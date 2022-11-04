@@ -1,7 +1,7 @@
 // This is a personal academic project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "include/scheduler.h"
-#include "include/memManager.h"
+#include "include/memManagerADT.h"
 #include "include/lib.h"
 #include "include/pipe.h"
 #include "include/syscallDispatcher.h"
@@ -383,7 +383,6 @@ int killed(uint64_t pid) {
 }
 
 void printSchedulerInfo(char *s) {
-    char *ans, auxarray;
     char buffer[64] = {'0'};
     char title[] = "Name PID PPID Priority Stack BP\n";
     s[0] = '\0';

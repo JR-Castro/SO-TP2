@@ -5,7 +5,7 @@
 
 #include <stdint.h>
 #include "defs.h"
-#include "memManager.h"
+#include "memManagerADT.h"
 
 typedef struct uint64Node {
     uint64_t val;

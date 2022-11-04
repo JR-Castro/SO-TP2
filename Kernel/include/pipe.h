@@ -4,7 +4,7 @@
 #include "defs.h"
 #include "semaphores.h"
 #include "scheduler.h"
-#include "memManager.h"
+#include "memManagerADT.h"
 
 #define PIPESIZE 512
 

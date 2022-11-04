@@ -23,6 +23,8 @@ char *strcat(char *dest, const char *src);
 
 char *strncat(char *dest, const char *src, size_t n);
 
+void *memmove(void *str1, const void *str2, size_t n);
+
 uint8_t getSeconds();
 
 uint8_t getMinutes();

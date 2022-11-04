@@ -10,19 +10,13 @@
 #include <stdlib.h>
 #include "lib.h"
 
-struct memoryInfo {
-    size_t free;
-    size_t occupied;
-    size_t totalSize;
-};
+void *dumbManagerAlloc(size_t nbytes);
 
-void *memAlloc(size_t nbytes);
+void dumbManagerFree(void *ap);
 
-void memFree(void *ap);
+void dumbCreateMemoryManager(void *managedMemory, size_t size);
 
-void createMemoryManager(void *managedMemory, size_t size);
-
-void memoryInfo(struct memoryInfo *info);
+void dumbMemoryInfo(struct memoryInfo *info);
 
 
 #endif //SO_TP2_MEMMANAGER_H
