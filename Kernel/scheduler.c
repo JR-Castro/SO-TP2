@@ -21,6 +21,12 @@ typedef enum {
     KILLED,
 } State;
 
+static char *STATESTRINGS[] = {
+    "READY",
+    "BLOCKED",
+    "KILLED",
+};
+
 typedef struct fd {
     void *p;
     int writable;
@@ -255,8 +261,7 @@ static int changeState(uint64_t pid, State newState) {
 uint64_t block(uint64_t pid) {
     if (pid <= FIRST_PID)
         return -1;
-    uint64_t ans = changeState(pid, BLOCKED);
-    return ans;
+    return changeState(pid, BLOCKED);
 }
 
 uint64_t unblock(uint64_t pid) {
@@ -384,7 +389,7 @@ int killed(uint64_t pid) {
 
 char *printSchedulerInfo() {
     char buffer[64];
-    char title[] = "Name PID PPID Priority Stack BP\n";
+    char title[] = "Name PID PPID Priority State Stack BP\n";
     char *ans = NULL;
     int size = 0, len = 0;
     len = copyResizeableString(&ans, title, &size, len);
@@ -419,6 +424,13 @@ char *printSchedulerInfo() {
         uintToBase(aux->info.priority, buffer, 10);
 
         len = copyResizeableString(&ans, buffer, &size, len);
+        if (len == -1)
+            goto bad;
+        len = copyResizeableString(&ans, " ", &size, len);
+        if (len == -1)
+            goto bad;
+
+        len = copyResizeableString(&ans, STATESTRINGS[aux->info.state], &size, len);
         if (len == -1)
             goto bad;
         len = copyResizeableString(&ans, " ", &size, len);
