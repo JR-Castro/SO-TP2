@@ -5,7 +5,7 @@
 #include "include/memManagerADT.h"
 #include "include/pipe.h"
 
-static void sys_time(time_t *s);
+static void sys_time(kernelTime_t *s);
 
 static void sys_copymem(uint64_t address, uint8_t *buffer, uint64_t length);
 
@@ -22,7 +22,7 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
         case 4:
             return waitPid(rdi);
         case 5:
-            sys_time((time_t *) rdi);
+            sys_time((kernelTime_t *) rdi);
             break;
         case 6:
             sys_copymem(rdi, (uint8_t *) rsi, rdx);
@@ -81,7 +81,7 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
     return 0;
 }
 
-static void sys_time(time_t *s) {
+static void sys_time(kernelTime_t *s) {
     s->day = localDay();
     s->month = localMonth();
     s->year = localYear();

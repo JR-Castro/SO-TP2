@@ -4,6 +4,7 @@
 #define SO_TP2_DEFS_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 #ifndef NULL
 #define NULL ((void*)0)
@@ -15,12 +16,12 @@
 
 #define EOF (-1)
 
-typedef unsigned long size_t;
+//typedef unsigned long size_t;
 
 typedef struct {
     uint8_t day, month, year;
     uint8_t hours, minutes, seconds;
-} time_t;
+} kernelTime_t;
 
 struct memoryInfo {
     size_t free;

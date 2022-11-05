@@ -3,7 +3,7 @@
 #include "include/memManagerADT.h"
 #ifdef BUDDY
 #define BUDDY_ALLOC_IMPLEMENTATION
-#include "buddy.h"
+#include "include/buddy.h"
 #else
 #include "include/memManager.h"
 #endif

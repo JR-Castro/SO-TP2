@@ -31,7 +31,7 @@ extern uint64_t sys_createProcess(int (*pFunction)(int, char **), int argc, char
 
 extern uint64_t sys_waitpid(uint64_t pid);
 
-extern void sys_time(time_t *time);
+extern void sys_time(kernelTime_t *time);
 
 extern void sys_copymem(uint64_t address, uint8_t *buffer, uint64_t length);
 

@@ -3,7 +3,7 @@
 #include "../include/syslib.h"
 
 void getTime(){
-    time_t time;
+    kernelTime_t time;
     char buffer[64];
     sys_time(&time);
 

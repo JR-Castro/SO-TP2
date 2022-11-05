@@ -22,9 +22,9 @@ typedef enum {
 } State;
 
 static char *STATESTRINGS[] = {
-    "READY",
-    "BLOCKED",
-    "KILLED",
+        "READY",
+        "BLOCKED",
+        "KILLED",
 };
 
 typedef struct fd {
@@ -238,12 +238,10 @@ static int changeState(uint64_t pid, State newState) {
             if (processList.last == aux)
                 processList.last = NULL;
         } else {
-            while (previous != NULL && previous->next != aux) {
+            /*  Already checked at start of function that aux is on the list    */
+            while (previous->next != aux) {
                 previous = previous->next;
             }
-            /* PVS says that previous may be a null pointer
-             * But if we're killing a process in the list, either it's the first node
-             * or there is another node pointing to it*/
             previous->next = aux->next;
             if (processList.last == aux)
                 processList.last = previous;
@@ -446,7 +444,7 @@ char *printSchedulerInfo() {
         if (len == -1)
             goto bad;
 
-        uintToBase((uint64_t)aux->info.stackMem, buffer, 16);
+        uintToBase((uint64_t) aux->info.stackMem, buffer, 16);
 
         len = copyResizeableString(&ans, buffer, &size, len);
         if (len == -1)

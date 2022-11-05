@@ -2,9 +2,7 @@
 #define LIB_H
 
 #include <stdint.h>
-#include "defs.h"
-
-typedef unsigned long size_t;
+#include <stddef.h>
 
 #include "memManagerADT.h"
 
