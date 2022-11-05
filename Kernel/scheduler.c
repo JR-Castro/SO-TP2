@@ -396,62 +396,48 @@ char *printSchedulerInfo() {
     pidNode_t *aux = processList.first;
     while (aux != NULL) {
         len = copyResizeableString(&ans, aux->info.argv[0], &size, len);
-        if (len == -1)
-            goto bad;
+        if (len == -1) goto bad;
         len = copyResizeableString(&ans, " ", &size, len);
-        if (len == -1)
-            goto bad;
+        if (len == -1) goto bad;
         uintToBase(aux->info.pid, buffer, 10);
 
         len = copyResizeableString(&ans, buffer, &size, len);
-        if (len == -1)
-            goto bad;
+        if (len == -1) goto bad;
         len = copyResizeableString(&ans, " ", &size, len);
-        if (len == -1)
-            goto bad;
+        if (len == -1) goto bad;
 
         uintToBase(aux->info.ppid, buffer, 10);
 
         len = copyResizeableString(&ans, buffer, &size, len);
-        if (len == -1)
-            goto bad;
+        if (len == -1) goto bad;
         len = copyResizeableString(&ans, " ", &size, len);
-        if (len == -1)
-            goto bad;
+        if (len == -1) goto bad;
 
         uintToBase(aux->info.priority, buffer, 10);
 
         len = copyResizeableString(&ans, buffer, &size, len);
-        if (len == -1)
-            goto bad;
+        if (len == -1) goto bad;
         len = copyResizeableString(&ans, " ", &size, len);
-        if (len == -1)
-            goto bad;
+        if (len == -1) goto bad;
 
         len = copyResizeableString(&ans, STATESTRINGS[aux->info.state], &size, len);
-        if (len == -1)
-            goto bad;
+        if (len == -1) goto bad;
         len = copyResizeableString(&ans, " ", &size, len);
-        if (len == -1)
-            goto bad;
+        if (len == -1) goto bad;
 
         uintToBase(aux->info.rsp, buffer, 16);
 
         len = copyResizeableString(&ans, buffer, &size, len);
-        if (len == -1)
-            goto bad;
+        if (len == -1) goto bad;
         len = copyResizeableString(&ans, " ", &size, len);
-        if (len == -1)
-            goto bad;
+        if (len == -1) goto bad;
 
         uintToBase((uint64_t) aux->info.stackMem, buffer, 16);
 
         len = copyResizeableString(&ans, buffer, &size, len);
-        if (len == -1)
-            goto bad;
+        if (len == -1) goto bad;
         len = copyResizeableString(&ans, "\n", &size, len);
-        if (len == -1)
-            goto bad;
+        if (len == -1) goto bad;
 
         aux = aux->next;
     }

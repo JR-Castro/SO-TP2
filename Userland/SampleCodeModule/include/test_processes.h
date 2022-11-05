@@ -6,6 +6,6 @@
 #include "syslib.h"
 #include "test_util.h"
 
-int64_t test_processes(uint64_t argc, char *argv[]);
+int test_processes(int argc, char *argv[]);
 
 #endif //SO_TP2_TEST_PROCESSES_H

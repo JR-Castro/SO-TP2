@@ -6,6 +6,6 @@
 #include "test_util.h"
 #include "syslib.h"
 
-uint64_t test_mm(uint64_t argc, char *argv[]);
+int test_mm(int argc, char *argv[]);
 
 #endif //SO_TP2_TEST_MM_H

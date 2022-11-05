@@ -66,8 +66,7 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
         case 23:
             return dup2(rdi, rsi);
         case 24:
-            printPipesInfo();
-            break;
+            return (uint64_t) printPipesInfo();
         case 25:
             return closepipe(rdi);
         case 26:

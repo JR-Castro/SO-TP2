@@ -48,7 +48,7 @@ uint64_t my_process_inc(uint64_t argc, char *argv[]){   // {name, n, inc, use_se
     return 0;
 }
 
-uint64_t test_sync(uint64_t argc, char *argv[]){ //{name, n, use_sem}
+int test_sync(int argc, char *argv[]){ //{name, n, use_sem}
     uint64_t pids[2 * TOTAL_PAIR_PROCESSES];
     int8_t usesem;
 

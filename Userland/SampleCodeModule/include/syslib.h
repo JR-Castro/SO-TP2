@@ -79,7 +79,7 @@ extern int sys_connect_named_pipe(char *name, int writeable);
 
 extern int sys_dup2(uint64_t oldfd, uint64_t newfd);
 
-extern void sys_print_pipe_info();
+extern char *sys_print_pipe_info();
 
 extern uint64_t sys_close_pipe(uint64_t fd);
 

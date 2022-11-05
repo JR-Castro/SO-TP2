@@ -6,6 +6,6 @@
 #include "syslib.h"
 #include "test_util.h"
 
-void test_prio();
+int test_prio();
 
 #endif //SO_TP2_TEST_PRIO_H

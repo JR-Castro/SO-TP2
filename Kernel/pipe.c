@@ -27,7 +27,7 @@ void *pipealloc() {
     p->writeopen = 1;
     p->name = NULL;
     p->readers.first = p->readers.last = p->writers.last = p->writers.first = NULL;
-    if (uint64ListAddNode(&(pipeList), (uint64_t)p)){
+    if (uint64ListAddNode(&(pipeList), (uint64_t) p)) {
         memFree(p);
         return NULL;
     }
@@ -35,13 +35,13 @@ void *pipealloc() {
 }
 
 void *namedPipeAlloc(char *name) {
-    struct pipe *p = (struct pipe*) pipealloc();
+    struct pipe *p = (struct pipe *) pipealloc();
     if (p == NULL)
         return NULL;
 
     int n = strlen(name) + 1;
     p->name = memAlloc(sizeof(char) * n);
-    if (p->name == NULL){
+    if (p->name == NULL) {
         freepipe(p);
         return NULL;
     }
@@ -58,8 +58,8 @@ void *connectNamedPipe(char *name) {
 void *getNamedPipe(char *name) {
     uint64Node_t *node = pipeList.first;
     while (node != NULL) {
-        if (strcmp(name, ((struct pipe*)node->val)->name) == 0)
-            return (void*)node->val;
+        if (strcmp(name, ((struct pipe *) node->val)->name) == 0)
+            return (void *) node->val;
     }
     return NULL;
 }
@@ -158,25 +158,57 @@ static void sleep(uint64List_t *list, int *lock) {
     acquire(lock);
 }
 
-void printPipesInfo() {
+char *printPipesInfo() {
     uint64Node_t *node = pipeList.first;
     struct pipe *p;
-    ncPrint("nread nwrite readopen writeopen name\n");
+    char title[] = "nread nwrite readopen writeopen name\n";
+    char *s = NULL;
+    int size = 0, len = 0;
+    char buffer[64];
+    len = copyResizeableString(&s, title, &size, len);
+    if (len == -1)
+        return NULL;
     while (node != NULL) {
-        p = (struct pipe*)node->val;
-        ncPrintDec(p->nread);
-        ncPrintChar(' ');
-        ncPrintDec(p->nwrite);
-        ncPrintChar(' ');
-        ncPrintDec(p->readopen);
-        ncPrintChar(' ');
-        ncPrintDec(p->writeopen);
-        ncPrintChar(' ');
-        if (p->name != NULL)
-            ncPrint(p->name);
+        p = (struct pipe *) node->val;
+        uintToBase(p->nread, buffer, 10);
+        len = copyResizeableString(&s, buffer, &size, len);
+        if (len == -1) goto bad;
+        len = copyResizeableString(&s, " ", &size, len);
+        if (len == -1) goto bad;
+
+        uintToBase(p->nwrite, buffer, 10);
+        len = copyResizeableString(&s, buffer, &size, len);
+        if (len == -1) goto bad;
+        len = copyResizeableString(&s, " ", &size, len);
+        if (len == -1) goto bad;
+
+        uintToBase(p->readopen, buffer, 10);
+        len = copyResizeableString(&s, buffer, &size, len);
+        if (len == -1) goto bad;
+        len = copyResizeableString(&s, " ", &size, len);
+        if (len == -1) goto bad;
+
+        uintToBase(p->writeopen, buffer, 10);
+        len = copyResizeableString(&s, buffer, &size, len);
+        if (len == -1) goto bad;
+        len = copyResizeableString(&s, " ", &size, len);
+        if (len == -1) goto bad;
+
+        if (p->name)
+            len = copyResizeableString(&s, p->name, &size, len);
         else
-            ncPrintChar('-');
-        ncPrintChar('\n');
+            len = copyResizeableString(&s, "UNNAMED", &size, len);
+        if (len == -1) goto bad;
+
+        len = copyResizeableString(&s, "\n", &size, len);
+        if (len == -1) goto bad;
+
         node = node->next;
     }
+    finishResizeableString(&s, len);
+    return s;
+
+    bad:
+    memFree(s);
+    return NULL;
 }

@@ -21,6 +21,7 @@
 #include "ps.h"
 #include "semsinfo.h"
 #include "nice.h"
+#include "pipes.h"
 
 _Noreturn int shell();
 
