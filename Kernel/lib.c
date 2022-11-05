@@ -139,6 +139,7 @@ static int growString(char **str, int *size) {
     memcpy(new, *str, *size);
     memFree(*str);
     *str = new;
+    *size = *size + STRINGBLOCK;
     return 0;
 }
 
