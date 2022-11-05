@@ -25,6 +25,6 @@ clean:
 	cd Userland; make clean
 
 pvs: clean
-	./pvs.sh
+	./pvs.sh $(MM)
 
 .PHONY: bootloader image collections kernel gdb userland all clean
