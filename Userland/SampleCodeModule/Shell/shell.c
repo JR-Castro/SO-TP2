@@ -30,7 +30,7 @@ cmd_t dsp_table[CMDS] = {
         {"loop",         (int (*)(int, char **)) loop,                0, "Start a loop process"},
         {"kill",         (int (*)(int, char **)) kill,                1, "Kill a process"},
         {"nice",         nice,                                        2, "Change priority of a process"},
-        {"block",        block,                                       1, "Block a process"},
+        {"block",        block,                                       1, "Block or unblock a process"},
         {"sem",          semsinfo,                                    0, "Show semaphore info"},
         {"cat",          cat,                                         0, "Print input to output"},
         {"wc",           (int (*)(int, char **)) wordcount,           0, "Count lines in input"},
