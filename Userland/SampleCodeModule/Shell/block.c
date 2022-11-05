@@ -10,7 +10,18 @@ int block(int argc, char ** argv) {
     while (argc > 1) {
         int pid = satoi(argv[argc - 1]);
         if (pid > 0) {
-            sys_block(pid);
+            switch (sys_block(pid)) {
+                case -1:
+                    puts("Process doesn't exist");
+                    break;
+                case 0:
+                    puts("Process blocked");
+                    break;
+                case 1:
+                    sys_unblock(pid);
+                    puts("Process unblocked");
+                    break;
+            }
         }
         argc--;
     }
