@@ -23,8 +23,7 @@ int test_mm(int argc, char *argv[]){
 
     if ((max_memory = satoi(argv[1])) <= 0) return -1;
 
-    if ((cycles = satoi(argv[2])) < 0) return -1;
-    if (cycles == 0) infinite = 1;
+    if ((cycles = satoi(argv[2])) == 0) infinite = 1;
 
     struct memoryInfo info;
     sys_memInfo(&info);

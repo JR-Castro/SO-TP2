@@ -54,7 +54,10 @@ void freeArgs(arg_t *args, int argc) {
 
 void *parse(char *cmd, char ***argv, int *argc) {
     const char *tok = strtok(cmd, delim);
-    if (!tok) return NULL;
+    if (!tok) {
+        puts("Select a command from the list");
+        return NULL;
+    }
 
     int i = CMDS;
     while (i--) {
@@ -69,19 +72,29 @@ void *parse(char *cmd, char ***argv, int *argc) {
             return cur.func;
         }
     }
-    puts("Command not found");
+    puts("Command not found, check with help");
     return NULL;
 }
 
 arg_t *args_parse(const char *name, int argc) {
     arg_t *args = sys_alloc(sizeof(arg_t) * (argc + 1));
+    if (args == NULL) {
+        puts("Memory allocation failed");
+        return NULL;
+    }
+
     args[0] = sys_alloc(strlen(name + 1));
-    if (args[0] == NULL) return NULL;
+    if (args[0] == NULL) {
+        puts("Memory allocation failed");
+        return NULL;
+    }
+
     strcpy(args[0], name);
     for (int i = 1; i < argc + 1; ++i) {
         char *newarg = strtok(NULL, delim);
         if (!newarg) {
             freeArgs(args, i);      // Free all previous arguments
+            puts("Not enough arguments");
             return NULL;
         }
         args[i] = sys_alloc(strlen(newarg) + 1);
@@ -113,11 +126,10 @@ int getInput(char *s) {
 
 // pipe[0]: Lectura
 // pipe[1]: Escritura
-int pipe[2];
-int pid[2];
+static int pipe[2];
+static int pid[2];
 
-static void createWriterProcessWithPipe(int argc, char **argv) {
-    int writer = 1;
+static void pipedProcessCreation(int argc, char **argv, int writer) {
     sys_close_pipe(pipe[(writer + 1) % 2]);
     sys_dup2(pipe[writer], writer);
     sys_close_pipe(pipe[writer]);
@@ -126,24 +138,20 @@ static void createWriterProcessWithPipe(int argc, char **argv) {
         cmd_t cur = dsp_table[i];
         if (strcmp(cur.name, argv[0]) == 0) {
             pid[writer] = sys_createProcess(cur.func, argc, argv);
+            if (pid[writer] == 0) {
+                puts("Error creating process");
+            }
             break;
         }
     }
 }
 
+static void createWriterProcessWithPipe(int argc, char **argv) {
+    pipedProcessCreation(argc, argv, 1);
+}
+
 static void createReaderProcessWithPipe(int argc, char **argv) {
-    int writer = 0;
-    sys_close_pipe(pipe[(writer + 1) % 2]);
-    sys_dup2(pipe[writer], writer);
-    sys_close_pipe(pipe[writer]);
-    int i = CMDS;
-    while (i--) {
-        cmd_t cur = dsp_table[i];
-        if (strcmp(cur.name, argv[0]) == 0) {
-            pid[writer] = sys_createProcess(cur.func, argc, argv);
-            break;
-        }
-    }
+    pipedProcessCreation(argc, argv, 0);
 }
 
 _Noreturn int shell() {
@@ -166,7 +174,6 @@ _Noreturn int shell() {
         int (*f1)(int, char **) = parse(cmd, &argv1, &argc1);
 
         if (f1 == NULL) {
-            puts("Error parsing command");
             sys_free(cmd);
             continue;
         }
@@ -174,27 +181,36 @@ _Noreturn int shell() {
         char *next = strtok(NULL, delim);
         if (next == NULL) {
             int pid = sys_createProcess(f1, argc1, argv1);
-            sys_waitpid(pid);
+            if (pid == 0) {
+                puts("Error creating process");
+            } else {
+                sys_waitpid(pid);
+            }
             putchar('\n');
             sys_free(cmd);
             freeArgs(argv1, argc1);
             continue;
         }
         if (*next == '&') {
-            sys_createProcess(f1, argc1, argv1);
+            int pid = sys_createProcess(f1, argc1, argv1);
+            if (pid == 0) {
+                puts("Error creating process");
+            }
             putchar('\n');
             sys_free(cmd);
             freeArgs(argv1, argc1);
             continue;
         }
         if (*next == '|') {
+            pid[0] = pid[1] = 0;
+
             int (*f2)(int, char **) = parse(NULL, &argv2, &argc2);
             if (f2 == NULL) {
-                puts("Error parsing command");
                 sys_free(cmd);
                 freeArgs(argv1, argc1);
                 continue;
             }
+
             if (sys_create_pipe((uint64_t *) pipe)) {
                 puts("Error creating pipe");
                 sys_free(cmd);
@@ -202,15 +218,30 @@ _Noreturn int shell() {
                 freeArgs(argv2, argc2);
                 continue;
             }
+
             int aux1, aux2;
             aux1 = sys_createProcess((int (*)(int, char **)) createWriterProcessWithPipe, argc1, argv1);
             aux2 = sys_createProcess((int (*)(int, char **)) createReaderProcessWithPipe, argc2, argv2);
-            sys_waitpid(aux1);
-            sys_waitpid(aux2);
+            if (aux1 == 0 || aux2 == 0) {
+                puts("Error creating process");
+                sys_kill(aux1);
+                sys_kill(aux2);
+            } else {
+                sys_waitpid(aux1);
+                sys_waitpid(aux2);
+            }
+
             sys_close_pipe(pipe[0]);
             sys_close_pipe(pipe[1]);
-            sys_waitpid(pid[0]);
-            sys_waitpid(pid[1]);
+
+            if (pid[0] == 0 || pid[1] == 0) {
+                sys_kill(pid[0]);
+                sys_kill(pid[1]);
+            } else {
+                sys_waitpid(pid[0]);
+                sys_waitpid(pid[1]);
+            }
+
             putchar('\n');
             sys_free(cmd);
             freeArgs(argv1, argc1);
