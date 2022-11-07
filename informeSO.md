@@ -146,7 +146,7 @@ En caso de no encontrar que tecla imprime un carácter, en el archivo `Kernel/ke
 - `processtest [CANT] [CICLOS]`: Crea `CANT` procesos, los mata o bloquea y desbloquea de forma random hasta que todos hayan sido matados, `CICLOS` veces. Si `CICLOS` es 0, nunca termina.
 - `prioritytest`: Demuestra el funcionamiento de las prioridades del scheduler.
 - `synctest [N] [USE_SEM]`: Demuestra la sincronización de procesos, modificando una variable N veces. USE_SEM debe ser un entero positivo o cero, si es 0 no hace uso de semáforos.
-- `memtest`: Testea el administrador de memoria pidiendo memoria, escribiendo y comprobando que no se superponen. Nunca termina, se recomienda utilizarla en background con '&'.
+- `memtest [BYTES] [CICLOS]`: Testea el administrador de memoria pidiendo memoria, escribiendo y comprobando que no se superponen. Si `BYTES` es mayor que la memoria libre disponible, se limita a la memoria libre. Si `CICLOS` es 0, nunca termina.
 
 # Limitaciones
 

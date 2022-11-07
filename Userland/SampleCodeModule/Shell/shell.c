@@ -29,7 +29,7 @@ cmd_t dsp_table[CMDS] = {
         {"ps",           ps,                                   0, "Show processes"},
         {"loop",         (int (*)(int, char **)) loop,         0, "Start a loop process"},
         {"kill",         (int (*)(int, char **)) kill,         1, "Kill a process"},
-        {"nice",         nice,                                 2, "Change priority of a process"},
+        {"nice",         nice,                                 2, "Change priority of a process. Arguments: PID Priority"},
         {"block",        block,                                1, "Block or unblock a process"},
         {"sem",          semsinfo,                             0, "Show semaphore info"},
         {"cat",          cat,                                  0, "Print input to output"},
@@ -37,11 +37,10 @@ cmd_t dsp_table[CMDS] = {
         {"filter",       filter,                               0, "Filter vocals from input"},
         {"pipe",         pipes,                                0, "Show pipe status"},
         {"phylo",        philosophers,                         0, "Interactive philosophers"},
-        {"processtest",  test_processes,                       2, "Test process creation, blocking and killing"},
+        {"processtest",  test_processes,                       2, "Test process creation, blocking and killing. Arguments: MaxProcess Cycles (0 for infinite)"},
         {"prioritytest", test_prio,                            0, "Test priority"},
-        {"synctest",     test_sync,                            2, "Test synchronization primitives"},
-        {"memtest",      test_mm,                              0, "Test memory allocation and freeing (preferably in background)"},
-//        {"exit",         (int (*)(int, char **)) sys_exit,                  0, "Exit the shell"},
+        {"synctest",     test_sync,                            2, "Test synchronization primitives. Arguments: NmbrPairs UseSemaphores"},
+        {"memtest",      test_mm,                              2, "Test memory allocation and freeing. Arguments: Bytes Cycles (0 for infinite)"},
 };
 
 const char *delim = " ";

@@ -15,15 +15,24 @@ int test_mm(int argc, char *argv[]){
     mm_rq mm_rqs[MAX_BLOCKS];
     uint8_t rq;
     uint32_t total;
-//    uint64_t max_memory;
-//
-//    if (argc != 1) return -1;
-//
-//    if ((max_memory = satoi(argv[0])) <= 0) return -1;
+    uint64_t max_memory;
+    uint64_t cycles;
+    uint8_t infinite = 0;
 
-    uint32_t max_memory = 1048576; // 1MB
+    if (argc < 3) return -1;
 
-    while (1){
+    if ((max_memory = satoi(argv[1])) <= 0) return -1;
+
+    if ((cycles = satoi(argv[2])) < 0) return -1;
+    if (cycles == 0) infinite = 1;
+
+    struct memoryInfo info;
+    sys_memInfo(&info);
+
+    if (max_memory > info.free)
+        max_memory = info.free;
+
+    while (infinite || cycles){
         rq = 0;
         total = 0;
 
@@ -56,6 +65,10 @@ int test_mm(int argc, char *argv[]){
         for (i = 0; i < rq; i++)
             if (mm_rqs[i].address)
                 sys_free(mm_rqs[i].address);
+
+        if (!infinite)
+            cycles--;
     }
+    return 0;
 }
 
