@@ -117,13 +117,7 @@ void keyboard_handler(uint64_t *registers) {
     uint16_t scancode = read_port(0x60);
     uint16_t key = scancode & 0x7F;
     if (pressed(scancode, key)) {
-        if (control) {
-            if (key == 0x2E) { // Ctrl+C = copy registers
-                setRegisters(registers);
-            }
-        } else {
-            add(translate(key));
-        }
+        add(translate(key));
     }
 }
 
@@ -167,6 +161,9 @@ static uint8_t pressed(uint16_t scancode, uint16_t key) {
 }
 
 static char translate(uint16_t key) {
+    if (control && shiftedKeys[key] == 'D') {
+        return 4; // Ctrl+D = end of transmission
+    }
     if (capsLock && !shift)
         return capKeys[key];
     else if (capsLock && shift)

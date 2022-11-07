@@ -14,7 +14,7 @@
 #define STDOUT 1
 #define STDERR 2
 
-#define EOF (-1)
+#define EOF 4
 
 //typedef unsigned long size_t;
 
