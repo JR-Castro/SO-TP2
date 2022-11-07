@@ -64,7 +64,7 @@ Utilizando una linked list, se tienen todos los semáforos del sistema en un lug
 
 ## Keyboard
 
-El teclado es casi el mismo que el heredado del trabajo práctico de Arquitectura de Computadoras, pero ahora hace uso de un semáforo para controlar la cantidad de caracteres disponibles para la lectura. Así, cuando un proceso lee del teclado, actúa de forma similar a un pipe y es bloqueado hasta que recibe todos los caracteres que solicito.
+El teclado es casi el mismo que el heredado del trabajo práctico de Arquitectura de Computadoras, pero ahora hace uso de un semáforo para controlar la cantidad de caracteres disponibles para la lectura. Así, cuando un proceso lee del teclado, actúa de forma similar a un pipe y es bloqueado hasta que recibe todos los caracteres que solicito. Tambien se añadio el uso de la combinación de teclas Ctrl+D, que envía al buffer el caracter ASCII `4`, que es interpretado como `EOF` por los procesos leyendo de este.
 
 # Instrucciones
 
@@ -138,9 +138,9 @@ En caso de no encontrar que tecla imprime un carácter, en el archivo `Kernel/ke
 - `nice [PID] [PRIORIDAD]`: Cambia la prioridad del proceso seleccionado, la prioridad debe ser un número entero entre 1 y 10.
 - `block [PID]`: Si el proceso esta corriendo lo bloquea, y si ya se encontraba bloqueado lo desbloquea.
 - `sem`: Imprime a pantalla la información de los semáforos abiertos en el sistema: nombre, id, valor, número de procesos esperándolo.
-- `cat`: Imprime a STDOUT lo que recibe por `STDIN`. En caso de llamarse solo, nunca termina.
-- `wc`: Cuanta la cantidad de `\n` leídos de `STDIN`, imprime al final la cantidad. En caso de llamarse solo, nunca termina.
-- `filter`: Lee de `STDIN` y lo imprime a `STDOUT`, excepto las vocales. En caso de llamarse solo, nunca termina.
+- `cat`: Imprime a STDOUT lo que recibe por `STDIN`. Leyendo del teclado, termina al recibir Ctrl+D.
+- `wc`: Cuanta la cantidad de `\n` leídos de `STDIN`, imprime al final la cantidad. Leyendo del teclado, termina al recibir Ctrl+D.
+- `filter`: Lee de `STDIN` y lo imprime a `STDOUT`, excepto las vocales. Leyendo del teclado, termina al recibir Ctrl+D.
 - `pipe`: Imprime la lista de todos los pipes: bytes leídos, escritos, cuantos procesos lo abrieron para leer, cuantos para escribir y el nombre del pipe si lo tiene.
 - `phylo`: Problema de los filósofos interactivo. Con 'a' se agrega un filósofo, y con 'r' se elimina uno.
 - `processtest [CANT] [CICLOS]`: Crea `CANT` procesos, los mata o bloquea y desbloquea de forma random hasta que todos hayan sido matados, `CICLOS` veces. Si `CICLOS` es 0, nunca termina.
