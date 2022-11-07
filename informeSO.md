@@ -1,24 +1,25 @@
 <!-- TOC -->
-* [Decisiones de diseño](#decisiones-de-diseo)
-  * [Scheduling](#scheduling)
-    * [Prioridad](#prioridad)
-    * [Estados](#estados)
-    * [File descriptors](#file-descriptors)
-  * [Administración de memoria](#administracin-de-memoria)
-    * [Dumb Manager](#dumb-manager)
-    * [Buddy](#buddy)
-  * [Pipes](#pipes)
-  * [Semáforos](#semforos)
-  * [Keyboard](#keyboard)
-* [Instrucciones](#instrucciones)
-  * [Compilación](#compilacin)
-  * [Ejecución](#ejecucin)
-* [Pasos a seguir](#pasos-a-seguir)
-  * [Shell](#shell)
-    * [Comandos disponibles](#comandos-disponibles)
-* [Limitaciones](#limitaciones)
-* [Problemas encontrados](#problemas-encontrados)
-* [Código Reutilizado](#cdigo-reutilizado)
+- [Decisiones de diseño](#decisiones-de-diseño)
+  - [Scheduling](#scheduling)
+    - [Prioridad](#prioridad)
+    - [Estados](#estados)
+    - [File descriptors](#file-descriptors)
+  - [Administración de memoria](#administración-de-memoria)
+    - [Dumb Manager](#dumb-manager)
+    - [Buddy](#buddy)
+  - [Pipes](#pipes)
+  - [Semáforos](#semáforos)
+  - [Keyboard](#keyboard)
+- [Instrucciones](#instrucciones)
+  - [Compilación](#compilación)
+  - [Ejecución](#ejecución)
+- [Pasos a seguir](#pasos-a-seguir)
+  - [Shell](#shell)
+    - [Comandos disponibles](#comandos-disponibles)
+- [Limitaciones](#limitaciones)
+- [Problemas encontrados](#problemas-encontrados)
+- [Código Reutilizado](#código-reutilizado)
+- [Advertencias PVS](#advertencias-pvs)
 <!-- TOC -->
 
 # Decisiones de diseño
@@ -180,7 +181,7 @@ La implementación del administrador de memoria Buddy fue obtenida en su totalid
 Todas las warnings de `bmfs.c` no fueron modificadas simplemente porque es el código que ya venía de x64Barebones.
 
 1. `naiveConsole.c`:
-   - Línea 11: PVS-Studio da una advertencia que solo se está definiendo el primer elemento del array, lo cual es cierto. El problema es que si se cambia por `{0}`, lo cual dejaría todo el array en zero, o no se inicializa, al correr el proyecto se genera una excepción de Pure64.
+   - Línea 11: PVS-Studio da una advertencia que solo se está definiendo el primer elemento del array, lo cual es cierto. El problema es que si se cambia por `{0}`, lo cual dejaría todo el array en zero, o no se inicializa, al correr el proyecto se genera una excepción de Pure64. Como esto es algo que viene desde x64Barebones, se decidio dejarlo sin más investigación.
    - Línea 13 y 14: PVS-Studio nota que estamos convirtiendo una constante a un pointer, lo cual en este caso está bien, pues según el manual de Pure64 la memoria de video se encuentra en esta dirección de memoria.
 2. `buddy.h`: En la línea 1252, PVS-Studio da error de que el operador `<<` tiene comportamiento sin definir. Es claro por el comentario anterior al operador, escrito por el autor del administrador de memoria, que ya está asegurado que el shift no tenga comportamiento indefinido.
 3. `kernel.c`: Vuelve a notar la conversión de constantes a punteros, pero en este caso es correcto su uso, pues el script de linkediteo asegura que los módulos utilicen esas direcciones de memoria para sus direcciones.
