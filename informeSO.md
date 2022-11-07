@@ -102,7 +102,7 @@ El make tiene cuatro targets útiles para su compilación:
 - `clean`: limpia todos los archivos compilados por el resto de comandos de este makefile.
 - `all`: Compila todo el proyecto.
 - `gdb`: Compila todo el proyecto con información para debugging.
-- `pvs`: Corre el analizador estático de código PVS-Studio. Antes de usarlo, se debe instalar PVS y registrar una licencia en la imagen de docker.
+- `pvs`: Corre el analizador estático de código PVS-Studio. Antes de usarlo, se debe [instalar PVS y registrar una licencia](https://github.com/alejoaquili/ITBA-72.11-SO/blob/main/static-code-analysis/pvs-studio.md) en la imagen de docker.
 
 ## Ejecución
 
