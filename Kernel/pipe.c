@@ -60,6 +60,7 @@ void *getNamedPipe(char *name) {
     while (node != NULL) {
         if (strcmp(name, ((struct pipe *) node->val)->name) == 0)
             return (void *) node->val;
+        node = node->next;
     }
     return NULL;
 }
